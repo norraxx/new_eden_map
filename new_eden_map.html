@@ -47,6 +47,22 @@
   .fchip:hover { color: var(--text); }
   .fchip.on { color: var(--text); border-color: var(--accent); background: rgba(111,168,255,.16); }
   .ftwo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* security range: two thumbs over one track coloured like the in-game security scale */
+  .secrange { position: relative; height: 22px; margin: 10px 7px 0; }
+  .sr-track { position: absolute; left: 0; right: 0; top: 8px; height: 6px; border-radius: 3px; overflow: hidden; }
+  .sr-out { position: absolute; top: 0; bottom: 0; background: rgba(7,9,13,.78); }
+  #srOutL { left: 0; } #srOutR { right: 0; }
+  .secrange input[type=range] { position: absolute; top: 0; left: -7px; width: calc(100% + 14px); height: 22px; margin: 0; padding: 0;
+    background: none; pointer-events: none; -webkit-appearance: none; appearance: none; outline: none; }
+  .secrange input[type=range]::-webkit-slider-runnable-track { height: 22px; background: transparent; }
+  .secrange input[type=range]::-moz-range-track { background: transparent; }
+  .secrange input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 14px; height: 14px; margin-top: 4px;
+    border-radius: 50%; background: #e8eef8; border: 2px solid #07090d; box-shadow: 0 0 0 1px #5a6578; cursor: grab; }
+  .secrange input[type=range]::-moz-range-thumb { pointer-events: auto; width: 10px; height: 10px; border-radius: 50%; background: #e8eef8;
+    border: 2px solid #07090d; box-shadow: 0 0 0 1px #5a6578; cursor: grab; }
+  .secrange input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--accent); }
+  .secrange input[type=range]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 2px var(--accent); }
+  .sr-vals { display: flex; justify-content: space-between; margin-top: 2px; font-size: 11.5px; font-weight: 700; }
   .fbody input[type=number], .fbody select { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border);
     background: var(--input); color: var(--text); font: inherit; font-size: 12px; outline: none; }
   .fbody input[type=number]:focus, .fbody select:focus { border-color: var(--accent); }
@@ -201,6 +217,15 @@
   .ctxmenu button { display: block; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent;
     color: var(--text); font: inherit; text-align: start; cursor: pointer; }
   .ctxmenu button:hover, .ctxmenu button:focus-visible { background: var(--hover); outline: none; }
+  .ctxmenu { max-width: 320px; }
+  .ctxmenu button.ctx-jb { color: #b5f0ff; }
+  .ctxmenu button:disabled { color: var(--muted); cursor: default; background: transparent; }
+  .ctx-note { padding: 0 10px 6px; font-size: 11.5px; color: #e5a07b; }
+  .ctx-sep { height: 1px; margin: 4px 6px; background: var(--border); }
+  #jbDraftBar { top: 16px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; align-items: center; gap: 8px;
+    max-width: calc(100vw - 32px); padding: 8px 8px 8px 14px; border-color: rgba(94,224,255,.55); color: #c4f4ff; font-size: 12.5px; }
+  #jbDraftBar[hidden] { display: none; }
+  #jbDraftBar .gb-x { position: static; flex: none; }
   .ctl-head { display: flex; align-items: flex-start; gap: 8px; }
   .ctl-head h1 { flex: 1; }
   .ctl-toggle { display: none; }
@@ -243,12 +268,10 @@
     background: transparent; color: var(--muted); font-size: 18px; cursor: pointer; }
   #jbDlg .close:hover { background: var(--hover); color: var(--text); }
   #jbDlg p { margin: 0; }
-  #jbDlg input, #jbDlg textarea { width: 100%; padding: 7px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--input);
+  #jbDlg textarea { width: 100%; padding: 7px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--input);
     color: var(--text); font: inherit; font-size: 12px; outline: none; }
-  #jbDlg textarea { resize: vertical; font-family: ui-monospace, Consolas, monospace; }
-  #jbDlg input:focus, #jbDlg textarea:focus { border-color: var(--accent); }
-  #jbDlg code { font-size: 11px; background: var(--input); padding: 0 4px; border-radius: 4px; overflow-wrap: anywhere; }
-  #jbDlg a { color: var(--accent); }
+  #jbDlg textarea { resize: vertical; min-height: 120px; font-family: ui-monospace, Consolas, monospace; }
+  #jbDlg textarea:focus { border-color: var(--accent); }
   #jbDlg .actions { margin: 0; align-items: center; }
   .jb-field { display: grid; gap: 4px; margin-top: 10px; }
   .jb-field[hidden] { display: none; }
@@ -258,6 +281,32 @@
   .jb-msg { font-size: 12px; color: var(--muted); }
   .jb-msg:empty { display: none; }
   .jb-msg.err { color: #e5a07b; } .jb-msg.ok { color: #4cc38a; }
+  /* typing a gate: From (a chip once chosen) » To, with suggestions under the row */
+  .jb-add { position: relative; display: flex; align-items: center; gap: 6px; }
+  .tok { flex: 1; min-width: 0; display: flex; align-items: center; min-height: 34px; padding: 3px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--input); }
+  .tok:focus-within { border-color: var(--accent); }
+  .tok input { flex: 1; min-width: 0; padding: 4px 6px; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 12px; outline: none; }
+  .tok input[hidden] { display: none; }
+  .tchip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 3px 3px 8px; border-radius: 5px;
+    border: 1px solid rgba(94,224,255,.55); background: rgba(94,224,255,.12); color: #d2f6ff; font-weight: 650; font-size: 12px; }
+  .tchip[hidden] { display: none; }
+  .tchip .tx { border: 0; background: none; color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer; padding: 0 4px; }
+  .tchip .tx:hover { color: var(--text); }
+  .jb-sug { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; padding: 4px; display: none;
+    background: #0d1119; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.6); }
+  .jb-sug.open { display: block; }
+  /* saved gates as cards: click a system to show it on the map */
+  .jb-list { display: grid; gap: 4px; max-height: 280px; overflow: auto; }
+  .jbrow { display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 6px; border-radius: 7px; background: var(--input);
+    border: 1px solid var(--border); border-inline-start-width: 3px; font-size: 12px; }
+  .jsys { display: inline-flex; align-items: center; gap: 6px; padding: 3px 7px; border: 0; border-radius: 5px; background: transparent;
+    color: var(--text); font: inherit; font-weight: 650; cursor: pointer; white-space: nowrap; }
+  .jsys:hover, .jsys:focus-visible { background: var(--hover); color: var(--accent); outline: none; }
+  .jmeta { flex: 1; min-width: 0; text-align: end; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .jx { flex: none; border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 5px; }
+  .jx:hover { color: #ff7b7b; background: var(--hover); }
+  .jb-textbody { display: grid; gap: 8px; margin-top: 8px; }
   .jbbtn { border-color: rgba(94,224,255,.55); background: rgba(94,224,255,.08); color: #b5f0ff; }
   .jbbtn:hover { background: rgba(94,224,255,.16); }
 
@@ -286,7 +335,16 @@
     .rt-strip button { width: 14px; height: 14px; }
     #fList { max-height: 40vh; }
     .fitem { padding: 8px 6px; }
-    .jsel, #jbDlg input, #jbDlg textarea { font-size: 16px; padding: 8px 10px; }
+    .jsel, #jbDlg textarea { font-size: 16px; padding: 8px 10px; }
+    .tok input { font-size: 16px; }
+    .secrange { height: 28px; margin-inline: 10px; }
+    .sr-track { top: 11px; }
+    .secrange input[type=range] { height: 28px; left: -10px; width: calc(100% + 20px); }
+    .secrange input[type=range]::-webkit-slider-runnable-track { height: 28px; }
+    .secrange input[type=range]::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: 4px; }
+    .jsys { padding: 6px 8px; }
+    .jx { padding: 6px 8px; }
+    #jbDraftBar { top: auto; bottom: 10px; left: 10px; right: 10px; transform: none; max-width: none; z-index: 6; }
     #jbDlg { padding: 14px; }
   }
 </style>
@@ -329,7 +387,15 @@
         <div id="fOrigin" class="forigin"></div>
         <div class="fnote" data-i18n="jumpNote"></div>
       </div>
-      <div data-tip="tipSec"><span class="flabel" data-i18n="fSec"></span><div class="fchips" id="fSec"></div></div>
+      <div>
+        <div data-tip="tipSec"><span class="flabel" data-i18n="fSec"></span><div class="fchips" id="fSec"></div></div>
+        <div class="secrange" dir="ltr" data-tip="tipSecRange">
+          <div class="sr-track" id="srTrack"><div class="sr-out" id="srOutL"></div><div class="sr-out" id="srOutR"></div></div>
+          <input type="range" id="fSecMin" min="-10" max="10" step="1" value="-10" data-i18n-title="secFromL">
+          <input type="range" id="fSecMax" min="-10" max="10" step="1" value="10" data-i18n-title="secToL">
+        </div>
+        <div class="sr-vals" dir="ltr"><span id="srMin"></span><span id="srMax"></span></div>
+      </div>
       <div data-tip="tipPlanets"><span class="flabel" data-i18n="fPlanets"></span><div class="fchips" id="fPlanets"></div></div>
       <div class="ftwo">
         <label data-tip="tipMoons"><span class="flabel" data-i18n="fMoons"></span><input type="number" min="0" step="1" id="fMoons" placeholder="0"></label>
@@ -355,7 +421,8 @@
       <div class="row"><span class="line" style="background:rgb(160,85,195)"></span> <span data-i18n="e2"></span></div>
       <div class="row"><span class="ring"></span> <span data-i18n="jove"></span></div>
       <div class="row"><span class="diamond"></span> <span data-i18n="legInc"></span></div>
-      <div class="row"><svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true" style="flex:none"><path d="M1 9Q11-3 21 9" fill="none" stroke="#5ee0ff" stroke-width="1.6"/></svg> <span data-i18n="legJb"></span></div>
+      <div class="row"><svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true" style="flex:none"><path d="M1 9Q11-3 21 9" fill="none" stroke="rgb(61,220,132)" stroke-width="1.8"/></svg> <span data-i18n="legJb"></span></div>
+      <div class="row"><svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true" style="flex:none"><path d="M1 9Q11-3 21 9" fill="none" stroke="rgb(255,77,77)" stroke-width="1.6"/></svg> <span data-i18n="legJbOther"></span></div>
       <div class="row"><span class="ic-terr" style="width:22px;height:10px"></span> <span data-i18n="legTerr"></span></div>
     </div>
   </details>
@@ -385,6 +452,11 @@
 
 <div id="ctx" class="ctxmenu" role="menu" hidden></div>
 
+<div id="jbDraftBar" class="panel" hidden>
+  <span class="jbm">»</span> <span id="jbDraftText"></span>
+  <button id="jbDraftX" class="gb-x" data-i18n-title="close" data-key="Esc">×</button>
+</div>
+
 <div id="lang" class="panel">
   <button id="langBtn" aria-haspopup="menu" aria-expanded="false">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -413,31 +485,41 @@
   <button class="close" id="jbClose" data-i18n-title="close" data-key="Esc">×</button>
   <h2 data-i18n="jbTitle"></h2>
   <p class="fnote" data-i18n="jbIntro"></p>
+  <p class="fnote" data-i18n="jbRule" style="margin-top:6px"></p>
   <label class="jb-field"><span class="flabel" data-i18n="myAlliance"></span><select id="jbAlly" class="jsel"></select></label>
   <div class="jb-status" id="jbStatus"></div>
   <section class="jb-sec">
-    <h3 data-i18n="ssoTitle"></h3>
-    <p class="fnote" id="ssoHelp"></p>
-    <label class="jb-field"><span class="flabel" data-i18n="clientId"></span><input id="ssoId" autocomplete="off" spellcheck="false"></label>
-    <label class="jb-field"><span class="flabel" data-i18n="callback"></span><input id="ssoCb" autocomplete="off" spellcheck="false"></label>
-    <div class="actions"><button class="wpbtn jbbtn" id="ssoLogin" data-i18n="ssoLogin"></button></div>
-    <div class="jb-field" id="ssoPasteBox" hidden>
-      <span class="flabel" data-i18n="ssoPaste"></span>
-      <input id="ssoPaste" autocomplete="off" spellcheck="false" placeholder="http://localhost/…?code=…&amp;state=…">
-      <div class="actions"><button class="wpbtn jbbtn" id="ssoGo" data-i18n="ssoGo"></button></div>
-    </div>
-    <div class="jb-msg" id="ssoMsg"></div>
+    <h3 data-i18n="drawTitle"></h3>
+    <p class="fnote" data-i18n="drawHint"></p>
   </section>
   <section class="jb-sec">
     <h3 data-i18n="impTitle"></h3>
-    <p class="fnote" data-i18n="impHint"></p>
-    <textarea id="jbText" rows="5" spellcheck="false" placeholder="1DQ1-A » 8QT-H4&#10;8QT-H4 » 49-U6U"></textarea>
-    <div class="actions">
-      <button class="wpbtn jbbtn" id="jbImport" data-i18n="impBtn"></button>
-      <button class="linkbtn" id="jbCopy" data-i18n="copyBtn"></button>
-      <button class="linkbtn" id="jbClear" data-i18n="clearBtn"></button>
+    <div class="jb-add">
+      <div class="tok">
+        <span class="tchip" id="jbFromChip" hidden></span>
+        <input id="jbFrom" autocomplete="off" spellcheck="false" data-i18n-ph="jbFromPh" role="combobox" aria-autocomplete="list" aria-controls="jbSug">
+      </div>
+      <span class="jbm">»</span>
+      <div class="tok">
+        <input id="jbTo" autocomplete="off" spellcheck="false" data-i18n-ph="jbToPh" role="combobox" aria-autocomplete="list" aria-controls="jbSug">
+      </div>
+      <div id="jbSug" class="jb-sug" role="listbox"></div>
     </div>
-    <div class="jb-msg" id="jbImpMsg"></div>
+    <div class="jb-msg" id="jbAddMsg"></div>
+    <div id="jbList" class="jb-list"></div>
+    <div class="actions"><button class="linkbtn" id="jbClear" data-i18n="clearBtn"></button></div>
+    <details id="jbTextBox">
+      <summary data-i18n="jbAsText"></summary>
+      <div class="jb-textbody">
+        <p class="fnote" data-i18n="impHint"></p>
+        <textarea id="jbText" rows="8" spellcheck="false" placeholder="1DQ1-A » 8QT-H4&#10;8QT-H4 » 49-U6U"></textarea>
+        <div class="actions">
+          <button class="wpbtn jbbtn" id="jbImport" data-i18n="impBtn"></button>
+          <button class="linkbtn" id="jbCopy" data-i18n="copyBtn"></button>
+        </div>
+        <div class="jb-msg" id="jbImpMsg"></div>
+      </div>
+    </details>
   </section>
 </dialog>
 
@@ -577,37 +659,20 @@ const I18N = {
     allyWith: "Alliances with known gates",
     allyOther: "Other sovereignty holders",
     jbTitle: "Ansiblex jump gates",
-    jbIntro: "The EVE API has no public list of Ansiblex gates: ESI shows a gate only to a logged-in character that is on its access list. Load them with your character, or paste the list your alliance shares. A route uses only the gates of the alliance you choose and counts each one as a single jump.",
+    jbIntro: "The EVE API has no public list of Ansiblex gates, so the map keeps its own: draw gates on the map or paste a list below. They are saved on this computer, in this browser, and stay after a reload. A route uses only the gates of the alliance you choose and counts each one as a single jump.",
     jbKnown: "Gates in the list: {n} · used for routes: {u}",
     jbNone: "No gates loaded yet.",
-    jbSso: "Loaded via EVE SSO: {c}, {t}",
-    ssoTitle: "Load with your character (EVE SSO)",
-    ssoHelp: "One-time setup: create an application at {link} with the scopes {s1} and {s2} and the callback URL shown below, then copy its Client ID here. You log in on the CCP site; the login token is not saved.",
-    clientId: "Client ID",
-    callback: "Callback URL",
-    ssoLogin: "Log in with EVE Online",
-    ssoPaste: "After logging in, the browser goes to the callback address (an error page there is normal). Copy the full address from that tab and paste it here:",
-    ssoGo: "Load gates",
-    ssoNeedId: "Enter the Client ID and the callback URL (http:// or https://) first.",
-    ssoBadUrl: "This address has no login code, or it is from an older login attempt. Log in again.",
-    ssoToken: "Logging in…",
-    ssoSearch: "Searching for Ansiblex gates…",
-    ssoLoad: "Reading gates: {i} / {n}…",
-    ssoDone: "Gates loaded: {n}. Character: {c}.",
-    ssoNone: "No Ansiblex gates found: {c} is not on any gate’s access list.",
-    ssoPartial: "The ESI error limit was reached, so the list may be incomplete.",
-    ssoFail: "Error: {e}",
-    impTitle: "Import a list",
-    impHint: "One gate per line with both systems, e.g. 1DQ1-A » 8QT-H4. The owner is taken from sovereignty.",
-    impBtn: "Import",
+    impTitle: "Saved gates",
+    impHint: "One gate per line with both systems, e.g. 1DQ1-A » 8QT-H4. Gates drawn on the map show up here too. Paste or edit the list and press Save: the saved list becomes exactly what is in the box, so deleting a line removes its gate. To take the list elsewhere, copy it.",
+    impBtn: "Save",
     copyBtn: "Copy list",
     clearBtn: "Delete all",
     clearAsk: "Delete all Ansiblex gates from this browser?",
-    impDone: "Gates added: {n}",
+    impDone: "Saved gates: {n}",
     impBad: "lines not recognised: {n}",
     copied: "Copied to the clipboard",
     jumpsJb: "Jumps: {n} · Ansiblex: {b} · gates only: {g}",
-    legJb: "Ansiblex gate (bright: used for routes)",
+    legJb: "Ansiblex of your alliance (used for routes)",
     mapShow: "On the map",
     chipJove: "Jove observatories",
     chipIncShow: "Show on map",
@@ -628,11 +693,32 @@ const I18N = {
     tipJove: "Circle the systems that have a Jove observatory.",
     tipDim: "Dims every system without a Jove observatory so the observatories stand out. Works only while “Jove observatories” is on, and changes neither the filters nor the route.",
     tipRegions: "Region names on the zoomed-out map. Click a name to highlight the region.",
-    tipJb: "Draw known Ansiblex gates as arcs: bright — used for your routes, faint — other alliances.",
+    tipJb: "Draw known Ansiblex gates as arcs: green — your alliance’s (used for routes), red — other alliances’.",
     chipTerr: "Alliance territory",
     tipTerr: "Shades the sovereignty of the alliance chosen for Ansiblex routes. Live data from ESI.",
     terrN: "Systems in its space: {n}",
     legTerr: "territory of the chosen alliance",
+    jbFromHere: "Ansiblex from here",
+    jbConnect: "Connect Ansiblex with {a} · {d}",
+    jbCancel: "Cancel the Ansiblex from {a}",
+    jbRemove: "Remove Ansiblex {a} ↔ {b}",
+    jbTooFar: "Too far: {d} (an Ansiblex reaches 5 LY)",
+    jbNotNull: "An Ansiblex can stand only in nullsec under player sovereignty",
+    jbHasGate: "{s} already has an Ansiblex (one per system)",
+    jbDraft: "Ansiblex from {a}: right-click a system within 5 LY",
+    jbRule: "Since the September 2026 update only members of the owning alliance can use an Ansiblex. A gate reaches up to 5 LY, one per system, only in nullsec under player sovereignty.",
+    drawTitle: "Draw by hand",
+    drawHint: "Right-click a nullsec system → “Ansiblex from here”, then right-click another system within 5 LY → “Connect”. Right-click a system with a gate to remove it.",
+    legJbOther: "Ansiblex of another alliance",
+    jbFromPh: "From system…",
+    jbToPh: "To system…",
+    jbAsText: "As text: paste or copy a list",
+    jbAdded: "Added: {a} » {b}",
+    jbFromFirst: "First choose the system the gate starts from",
+    showOnMap: "Show on the map",
+    tipSecRange: "Drag the ends to keep only systems whose security (as the game shows it) is in this range. Works together with the buttons above.",
+    secFromL: "Security from",
+    secToL: "Security to",
   },
   zh: {
     title: '新伊甸星图', stats: '星系：{s} · 星门连接：{j} · 观测站：{o}', search: '查找星系…', notFound: '未找到',
@@ -720,37 +806,20 @@ const I18N = {
     allyWith: "已知跳跃门的联盟",
     allyOther: "其他主权持有者",
     jbTitle: "Ansiblex 跳跃门",
-    jbIntro: "EVE API 没有公开的 Ansiblex 列表：ESI 只向在其访问列表中的已登录角色显示跳跃门。请用你的角色加载，或粘贴联盟分享的列表。路线只使用所选联盟的跳跃门，每次使用计为一跳。",
+    jbIntro: "EVE API 没有公开的 Ansiblex 列表，所以地图自己保存：在地图上绘制跳跃门，或在下方粘贴列表。它们保存在这台电脑的浏览器中，刷新后仍然保留。路线只使用所选联盟的跳跃门，每次使用计为一跳。",
     jbKnown: "列表中的跳跃门：{n} · 用于路线：{u}",
     jbNone: "尚未加载跳跃门。",
-    jbSso: "通过 EVE SSO 加载：{c}，{t}",
-    ssoTitle: "用角色加载（EVE SSO）",
-    ssoHelp: "一次性设置：在 {link} 创建应用，权限为 {s1} 和 {s2}，回调地址填写下方显示的地址，然后把它的 Client ID 复制到这里。你在 CCP 网站登录；登录令牌不会被保存。",
-    clientId: "Client ID",
-    callback: "回调地址（Callback URL）",
-    ssoLogin: "使用 EVE Online 登录",
-    ssoPaste: "登录后浏览器会跳转到回调地址（那里显示错误页面是正常的）。复制该标签页的完整地址并粘贴到这里：",
-    ssoGo: "加载跳跃门",
-    ssoNeedId: "请先填写 Client ID 和回调地址（http:// 或 https://）。",
-    ssoBadUrl: "此地址中没有登录代码，或来自之前的登录尝试。请重新登录。",
-    ssoToken: "正在登录…",
-    ssoSearch: "正在搜索 Ansiblex 跳跃门…",
-    ssoLoad: "正在读取跳跃门：{i} / {n}…",
-    ssoDone: "已加载 {n} 个跳跃门。角色：{c}。",
-    ssoNone: "未找到 Ansiblex：{c} 不在任何跳跃门的访问列表中。",
-    ssoPartial: "已达到 ESI 错误上限，列表可能不完整。",
-    ssoFail: "错误：{e}",
-    impTitle: "导入列表",
-    impHint: "每行一个跳跃门，写上两个星系，例如 1DQ1-A » 8QT-H4。所有者取自主权数据。",
-    impBtn: "导入",
+    impTitle: "已保存的跳跃门",
+    impHint: "每行一个跳跃门，写上两个星系，例如 1DQ1-A » 8QT-H4。在地图上绘制的跳跃门也会显示在这里。粘贴或编辑列表后点击“保存”：保存的列表与框中内容完全一致，删除一行即删除该跳跃门。要把列表带到别处，请复制它。",
+    impBtn: "保存",
     copyBtn: "复制列表",
     clearBtn: "全部删除",
     clearAsk: "要从此浏览器删除所有 Ansiblex 跳跃门吗？",
-    impDone: "已添加跳跃门：{n}",
+    impDone: "已保存跳跃门：{n}",
     impBad: "无法识别的行：{n}",
     copied: "已复制到剪贴板",
     jumpsJb: "跳数：{n} · Ansiblex：{b} · 仅星门：{g}",
-    legJb: "Ansiblex 跳跃门（亮色：用于路线）",
+    legJb: "你的联盟的 Ansiblex（用于路线）",
     mapShow: "地图显示",
     chipJove: "朱庇特观测站",
     chipIncShow: "在地图上显示",
@@ -771,11 +840,32 @@ const I18N = {
     tipJove: "圈出拥有朱庇特观测站的星系。",
     tipDim: "淡化所有没有朱庇特观测站的星系，让观测站更醒目。仅在开启“朱庇特观测站”时有效，不影响筛选和路线。",
     tipRegions: "缩小地图时显示星域名称。点击名称可高亮该星域。",
-    tipJb: "用弧线绘制已知的 Ansiblex 跳跃门：亮色——用于你的路线，暗色——其他联盟。",
+    tipJb: "用弧线绘制已知的 Ansiblex 跳跃门：绿色——你的联盟（用于路线），红色——其他联盟。",
     chipTerr: "联盟领土",
     tipTerr: "为 Ansiblex 路线所选联盟的主权范围着色。来自 ESI 的实时数据。",
     terrN: "领土内星系：{n}",
     legTerr: "所选联盟的领土",
+    jbFromHere: "从这里建立 Ansiblex",
+    jbConnect: "用 Ansiblex 连接到 {a} · {d}",
+    jbCancel: "取消从 {a} 建立的 Ansiblex",
+    jbRemove: "移除 Ansiblex {a} ↔ {b}",
+    jbTooFar: "太远：{d}（Ansiblex 最远 5 光年）",
+    jbNotNull: "Ansiblex 只能建在玩家主权的零安星系",
+    jbHasGate: "{s} 已有 Ansiblex（每个星系只能有一个）",
+    jbDraft: "从 {a} 建立 Ansiblex：右键点击 5 光年内的星系",
+    jbRule: "自 2026 年 9 月更新起，只有所属联盟的成员可以使用 Ansiblex。跳跃门最远 5 光年，每个星系一个，只能建在玩家主权的零安星系。",
+    drawTitle: "手动绘制",
+    drawHint: "右键点击零安星系 →“从这里建立 Ansiblex”，再右键点击 5 光年内的另一个星系 →“连接”。右键点击有跳跃门的星系可将其移除。",
+    legJbOther: "其他联盟的 Ansiblex",
+    jbFromPh: "起点星系…",
+    jbToPh: "终点星系…",
+    jbAsText: "文本形式：粘贴或复制列表",
+    jbAdded: "已添加：{a} » {b}",
+    jbFromFirst: "请先选择跳跃门的起点星系",
+    showOnMap: "在地图上显示",
+    tipSecRange: "拖动两端，只保留安全等级（按游戏中的显示）在此范围内的星系。可与上方按钮同时使用。",
+    secFromL: "安全等级从",
+    secToL: "安全等级到",
   },
   hi: {
     title: 'न्यू ईडन का नक्शा', stats: 'सिस्टम: {s} · जंप: {j} · वेधशालाएँ: {o}', search: 'सिस्टम खोजें…', notFound: 'नहीं मिला',
@@ -863,37 +953,20 @@ const I18N = {
     allyWith: "ज्ञात गेट वाले एलायंस",
     allyOther: "अन्य संप्रभुता धारक",
     jbTitle: "Ansiblex जंप गेट",
-    jbIntro: "EVE API में Ansiblex गेट की कोई सार्वजनिक सूची नहीं है: ESI गेट केवल उस लॉग-इन किए हुए कैरेक्टर को दिखाता है जो उसकी एक्सेस सूची में है। इन्हें अपने कैरेक्टर से लोड करें, या अपने एलायंस की साझा सूची पेस्ट करें। रूट केवल चुने गए एलायंस के गेट इस्तेमाल करता है और हर गेट को एक जंप गिनता है।",
+    jbIntro: "EVE API में Ansiblex गेट की कोई सार्वजनिक सूची नहीं है, इसलिए नक्शा अपनी सूची रखता है: नक्शे पर गेट बनाएँ या नीचे सूची पेस्ट करें। वे इसी कंप्यूटर के इसी ब्राउज़र में सहेजे जाते हैं और रीलोड के बाद भी रहते हैं। रूट केवल चुने गए एलायंस के गेट इस्तेमाल करता है और हर गेट को एक जंप गिनता है।",
     jbKnown: "सूची में गेट: {n} · रूट में इस्तेमाल: {u}",
     jbNone: "अभी कोई गेट लोड नहीं हुआ।",
-    jbSso: "EVE SSO से लोड किया गया: {c}, {t}",
-    ssoTitle: "अपने कैरेक्टर से लोड करें (EVE SSO)",
-    ssoHelp: "एक बार की सेटिंग: {link} पर {s1} और {s2} स्कोप और नीचे दिखाए गए callback URL के साथ एक एप्लिकेशन बनाएँ, फिर उसका Client ID यहाँ कॉपी करें। आप CCP की साइट पर लॉग इन करते हैं; लॉगिन टोकन सहेजा नहीं जाता।",
-    clientId: "Client ID",
-    callback: "Callback URL",
-    ssoLogin: "EVE Online से लॉग इन करें",
-    ssoPaste: "लॉग इन के बाद ब्राउज़र callback पते पर जाएगा (वहाँ त्रुटि पेज दिखना सामान्य है)। उस टैब का पूरा पता कॉपी करके यहाँ पेस्ट करें:",
-    ssoGo: "गेट लोड करें",
-    ssoNeedId: "पहले Client ID और callback URL (http:// या https://) दर्ज करें।",
-    ssoBadUrl: "इस पते में लॉगिन कोड नहीं है, या यह पुराने प्रयास का है। फिर से लॉग इन करें।",
-    ssoToken: "लॉग इन हो रहा है…",
-    ssoSearch: "Ansiblex गेट खोजे जा रहे हैं…",
-    ssoLoad: "गेट पढ़े जा रहे हैं: {i} / {n}…",
-    ssoDone: "{n} गेट लोड हुए। कैरेक्टर: {c}।",
-    ssoNone: "कोई Ansiblex गेट नहीं मिला: {c} किसी गेट की एक्सेस सूची में नहीं है।",
-    ssoPartial: "ESI त्रुटि सीमा पूरी हो गई, इसलिए सूची अधूरी हो सकती है।",
-    ssoFail: "त्रुटि: {e}",
-    impTitle: "सूची आयात करें",
-    impHint: "हर पंक्ति में एक गेट, दोनों सिस्टम के साथ, जैसे 1DQ1-A » 8QT-H4। मालिक संप्रभुता से लिया जाता है।",
-    impBtn: "आयात करें",
+    impTitle: "सहेजे गए गेट",
+    impHint: "हर पंक्ति में एक गेट, दोनों सिस्टम के साथ, जैसे 1DQ1-A » 8QT-H4। नक्शे पर बनाए गए गेट भी यहाँ दिखते हैं। सूची पेस्ट या संपादित करें और “सहेजें” दबाएँ: सहेजी गई सूची बिल्कुल बॉक्स जैसी हो जाती है, इसलिए पंक्ति हटाने से उसका गेट हट जाता है। सूची कहीं और ले जाने के लिए उसे कॉपी करें।",
+    impBtn: "सहेजें",
     copyBtn: "सूची कॉपी करें",
     clearBtn: "सब हटाएँ",
     clearAsk: "इस ब्राउज़र से सभी Ansiblex गेट हटाएँ?",
-    impDone: "जोड़े गए गेट: {n}",
+    impDone: "सहेजे गए गेट: {n}",
     impBad: "पहचानी न गई पंक्तियाँ: {n}",
     copied: "क्लिपबोर्ड पर कॉपी किया गया",
     jumpsJb: "जंप: {n} · Ansiblex: {b} · केवल गेट से: {g}",
-    legJb: "Ansiblex गेट (चमकीला: रूट में इस्तेमाल)",
+    legJb: "आपके एलायंस का Ansiblex (रूट में इस्तेमाल)",
     mapShow: "नक्शे पर",
     chipJove: "जोव वेधशालाएँ",
     chipIncShow: "नक्शे पर दिखाएँ",
@@ -914,11 +987,32 @@ const I18N = {
     tipJove: "जिन सिस्टम में जोव वेधशाला है, उन्हें घेरे से चिह्नित करें।",
     tipDim: "जोव वेधशाला के बिना सभी सिस्टम धुंधले करता है ताकि वेधशालाएँ साफ़ दिखें। केवल तब काम करता है जब “जोव वेधशालाएँ” चालू हो, और फ़िल्टर या रूट नहीं बदलता।",
     tipRegions: "छोटे किए गए नक्शे पर क्षेत्रों के नाम। नाम पर क्लिक करके क्षेत्र हाइलाइट करें।",
-    tipJb: "ज्ञात Ansiblex गेट चाप के रूप में दिखाएँ: चमकीले — आपके रूट में इस्तेमाल, फीके — दूसरे एलायंस।",
+    tipJb: "ज्ञात Ansiblex गेट चाप के रूप में दिखाएँ: हरे — आपके एलायंस के (रूट में इस्तेमाल), लाल — दूसरे एलायंस के।",
     chipTerr: "एलायंस का क्षेत्र",
     tipTerr: "Ansiblex रूट के लिए चुने गए एलायंस की संप्रभुता को रंग से दिखाता है। ESI से लाइव डेटा।",
     terrN: "उसके क्षेत्र में सिस्टम: {n}",
     legTerr: "चुने गए एलायंस का क्षेत्र",
+    jbFromHere: "यहाँ से Ansiblex",
+    jbConnect: "{a} से Ansiblex जोड़ें · {d}",
+    jbCancel: "{a} से Ansiblex रद्द करें",
+    jbRemove: "Ansiblex {a} ↔ {b} हटाएँ",
+    jbTooFar: "बहुत दूर: {d} (Ansiblex की पहुँच 5 प्रकाश-वर्ष)",
+    jbNotNull: "Ansiblex केवल खिलाड़ियों की संप्रभुता वाले नलसेक में बन सकता है",
+    jbHasGate: "{s} में पहले से Ansiblex है (एक सिस्टम में एक)",
+    jbDraft: "{a} से Ansiblex: 5 प्रकाश-वर्ष के भीतर किसी सिस्टम पर राइट-क्लिक करें",
+    jbRule: "सितंबर 2026 के अपडेट से Ansiblex का इस्तेमाल केवल मालिक एलायंस के सदस्य कर सकते हैं। गेट की पहुँच 5 प्रकाश-वर्ष तक है, एक सिस्टम में एक, और केवल खिलाड़ियों की संप्रभुता वाले नलसेक में।",
+    drawTitle: "हाथ से बनाएँ",
+    drawHint: "नलसेक सिस्टम पर राइट-क्लिक → “यहाँ से Ansiblex”, फिर 5 प्रकाश-वर्ष के भीतर दूसरे सिस्टम पर राइट-क्लिक → “जोड़ें”। गेट हटाने के लिए उसके सिस्टम पर राइट-क्लिक करें।",
+    legJbOther: "दूसरे एलायंस का Ansiblex",
+    jbFromPh: "किस सिस्टम से…",
+    jbToPh: "किस सिस्टम तक…",
+    jbAsText: "टेक्स्ट के रूप में: सूची पेस्ट या कॉपी करें",
+    jbAdded: "जोड़ा गया: {a} » {b}",
+    jbFromFirst: "पहले वह सिस्टम चुनें जहाँ से गेट शुरू होता है",
+    showOnMap: "नक्शे पर दिखाएँ",
+    tipSecRange: "सिरों को खींचें ताकि केवल वे सिस्टम रहें जिनकी सुरक्षा (जैसी गेम में दिखती है) इस सीमा में हो। ऊपर के बटनों के साथ मिलकर काम करता है।",
+    secFromL: "सुरक्षा से",
+    secToL: "सुरक्षा तक",
   },
   es: {
     title: 'Mapa de New Eden', stats: 'Sistemas: {s} · Saltos: {j} · Observatorios: {o}', search: 'Buscar un sistema…', notFound: 'no encontrado',
@@ -1006,37 +1100,20 @@ const I18N = {
     allyWith: "Alianzas con puertas conocidas",
     allyOther: "Otros titulares de soberanía",
     jbTitle: "Puertas de salto Ansiblex",
-    jbIntro: "La API de EVE no tiene una lista pública de Ansiblex: ESI solo muestra una puerta a un personaje conectado que esté en su lista de acceso. Cárgalas con tu personaje o pega la lista que comparte tu alianza. La ruta usa solo las puertas de la alianza elegida y cuenta cada una como un salto.",
+    jbIntro: "La API de EVE no tiene una lista pública de Ansiblex, así que el mapa guarda la suya: dibuja puertas en el mapa o pega una lista abajo. Se guardan en este ordenador, en este navegador, y siguen ahí al recargar. La ruta usa solo las puertas de la alianza elegida y cuenta cada una como un salto.",
     jbKnown: "Puertas en la lista: {n} · usadas en rutas: {u}",
     jbNone: "Aún no hay puertas cargadas.",
-    jbSso: "Cargado con EVE SSO: {c}, {t}",
-    ssoTitle: "Cargar con tu personaje (EVE SSO)",
-    ssoHelp: "Configuración única: crea una aplicación en {link} con los permisos {s1} y {s2} y la URL de retorno que aparece abajo, y copia aquí su Client ID. Inicias sesión en la web de CCP; el token no se guarda.",
-    clientId: "Client ID",
-    callback: "URL de retorno (callback)",
-    ssoLogin: "Iniciar sesión con EVE Online",
-    ssoPaste: "Tras iniciar sesión, el navegador irá a la dirección de retorno (es normal que muestre un error). Copia la dirección completa de esa pestaña y pégala aquí:",
-    ssoGo: "Cargar puertas",
-    ssoNeedId: "Primero introduce el Client ID y la URL de retorno (http:// o https://).",
-    ssoBadUrl: "Esta dirección no tiene código de inicio de sesión o es de un intento anterior. Vuelve a iniciar sesión.",
-    ssoToken: "Iniciando sesión…",
-    ssoSearch: "Buscando puertas Ansiblex…",
-    ssoLoad: "Leyendo puertas: {i} / {n}…",
-    ssoDone: "Puertas cargadas: {n}. Personaje: {c}.",
-    ssoNone: "No se encontraron Ansiblex: {c} no está en la lista de acceso de ninguna puerta.",
-    ssoPartial: "Se alcanzó el límite de errores de ESI; la lista puede estar incompleta.",
-    ssoFail: "Error: {e}",
-    impTitle: "Importar una lista",
-    impHint: "Una puerta por línea con ambos sistemas, p. ej. 1DQ1-A » 8QT-H4. El propietario se toma de la soberanía.",
-    impBtn: "Importar",
+    impTitle: "Puertas guardadas",
+    impHint: "Una puerta por línea con ambos sistemas, p. ej. 1DQ1-A » 8QT-H4. Las puertas dibujadas en el mapa también aparecen aquí. Pega o edita la lista y pulsa Guardar: la lista guardada pasa a ser exactamente lo que hay en el cuadro, así que borrar una línea quita su puerta. Para llevarte la lista, cópiala.",
+    impBtn: "Guardar",
     copyBtn: "Copiar lista",
     clearBtn: "Borrar todo",
     clearAsk: "¿Borrar todas las puertas Ansiblex de este navegador?",
-    impDone: "Puertas añadidas: {n}",
+    impDone: "Puertas guardadas: {n}",
     impBad: "líneas no reconocidas: {n}",
     copied: "Copiado al portapapeles",
     jumpsJb: "Saltos: {n} · Ansiblex: {b} · solo por portales: {g}",
-    legJb: "puerta Ansiblex (brillante: usada en rutas)",
+    legJb: "Ansiblex de tu alianza (usada en rutas)",
     mapShow: "En el mapa",
     chipJove: "Observatorios jove",
     chipIncShow: "Mostrar en el mapa",
@@ -1057,11 +1134,32 @@ const I18N = {
     tipJove: "Rodea con un círculo los sistemas que tienen un observatorio jove.",
     tipDim: "Atenúa todos los sistemas sin observatorio jove para que los observatorios destaquen. Solo funciona con «Observatorios jove» activado y no cambia ni los filtros ni la ruta.",
     tipRegions: "Nombres de regiones en el mapa alejado. Haz clic en un nombre para resaltar la región.",
-    tipJb: "Dibuja las Ansiblex conocidas como arcos: brillantes — usadas en tus rutas, tenues — otras alianzas.",
+    tipJb: "Dibuja las Ansiblex conocidas como arcos: verdes — de tu alianza (usadas en rutas), rojas — de otras alianzas.",
     chipTerr: "Territorio de la alianza",
     tipTerr: "Sombrea la soberanía de la alianza elegida para las rutas con Ansiblex. Datos en vivo de ESI.",
     terrN: "Sistemas en su territorio: {n}",
     legTerr: "territorio de la alianza elegida",
+    jbFromHere: "Ansiblex desde aquí",
+    jbConnect: "Conectar Ansiblex con {a} · {d}",
+    jbCancel: "Cancelar la Ansiblex desde {a}",
+    jbRemove: "Quitar Ansiblex {a} ↔ {b}",
+    jbTooFar: "Demasiado lejos: {d} (una Ansiblex alcanza 5 al)",
+    jbNotNull: "Una Ansiblex solo puede estar en nula con soberanía de jugadores",
+    jbHasGate: "{s} ya tiene una Ansiblex (una por sistema)",
+    jbDraft: "Ansiblex desde {a}: clic derecho en un sistema a menos de 5 al",
+    jbRule: "Desde la actualización de septiembre de 2026, solo los miembros de la alianza propietaria pueden usar una Ansiblex. Alcance de hasta 5 al, una por sistema, solo en nula con soberanía de jugadores.",
+    drawTitle: "Dibujar a mano",
+    drawHint: "Clic derecho en un sistema de nula → «Ansiblex desde aquí», luego clic derecho en otro sistema a menos de 5 al → «Conectar». Clic derecho en un sistema con puerta para quitarla.",
+    legJbOther: "Ansiblex de otra alianza",
+    jbFromPh: "Sistema de origen…",
+    jbToPh: "Sistema de destino…",
+    jbAsText: "Como texto: pega o copia una lista",
+    jbAdded: "Añadida: {a} » {b}",
+    jbFromFirst: "Primero elige el sistema donde empieza la puerta",
+    showOnMap: "Mostrar en el mapa",
+    tipSecRange: "Arrastra los extremos para dejar solo los sistemas cuya seguridad (tal como la muestra el juego) está en este rango. Funciona junto con los botones de arriba.",
+    secFromL: "Seguridad desde",
+    secToL: "Seguridad hasta",
   },
   fr: {
     title: 'Carte de New Eden', stats: 'Systèmes : {s} · Sauts : {j} · Observatoires : {o}', search: 'Rechercher un système…', notFound: 'introuvable',
@@ -1149,37 +1247,20 @@ const I18N = {
     allyWith: "Alliances avec des portails connus",
     allyOther: "Autres détenteurs de souveraineté",
     jbTitle: "Portails de saut Ansiblex",
-    jbIntro: "L’API d’EVE n’a pas de liste publique des Ansiblex : ESI ne montre un portail qu’à un personnage connecté figurant sur sa liste d’accès. Chargez-les avec votre personnage ou collez la liste partagée par votre alliance. L’itinéraire n’utilise que les portails de l’alliance choisie et compte chacun comme un saut.",
+    jbIntro: "L’API d’EVE n’a pas de liste publique des Ansiblex, la carte garde donc la sienne : tracez des portails sur la carte ou collez une liste ci-dessous. Ils sont enregistrés sur cet ordinateur, dans ce navigateur, et restent après un rechargement. L’itinéraire n’utilise que les portails de l’alliance choisie et compte chacun comme un saut.",
     jbKnown: "Portails dans la liste : {n} · utilisés pour les itinéraires : {u}",
     jbNone: "Aucun portail chargé pour l’instant.",
-    jbSso: "Chargé via EVE SSO : {c}, {t}",
-    ssoTitle: "Charger avec votre personnage (EVE SSO)",
-    ssoHelp: "Configuration unique : créez une application sur {link} avec les scopes {s1} et {s2} et l’URL de rappel indiquée ci-dessous, puis copiez ici son Client ID. Vous vous connectez sur le site de CCP ; le jeton n’est pas enregistré.",
-    clientId: "Client ID",
-    callback: "URL de rappel (callback)",
-    ssoLogin: "Se connecter avec EVE Online",
-    ssoPaste: "Après la connexion, le navigateur va à l’adresse de rappel (une page d’erreur y est normale). Copiez l’adresse complète de cet onglet et collez-la ici :",
-    ssoGo: "Charger les portails",
-    ssoNeedId: "Saisissez d’abord le Client ID et l’URL de rappel (http:// ou https://).",
-    ssoBadUrl: "Cette adresse ne contient pas de code de connexion ou provient d’une tentative précédente. Reconnectez-vous.",
-    ssoToken: "Connexion…",
-    ssoSearch: "Recherche des portails Ansiblex…",
-    ssoLoad: "Lecture des portails : {i} / {n}…",
-    ssoDone: "Portails chargés : {n}. Personnage : {c}.",
-    ssoNone: "Aucun Ansiblex trouvé : {c} n’est sur la liste d’accès d’aucun portail.",
-    ssoPartial: "La limite d’erreurs d’ESI a été atteinte ; la liste peut être incomplète.",
-    ssoFail: "Erreur : {e}",
-    impTitle: "Importer une liste",
-    impHint: "Un portail par ligne avec les deux systèmes, p. ex. 1DQ1-A » 8QT-H4. Le propriétaire est déduit de la souveraineté.",
-    impBtn: "Importer",
+    impTitle: "Portails enregistrés",
+    impHint: "Un portail par ligne avec les deux systèmes, p. ex. 1DQ1-A » 8QT-H4. Les portails tracés sur la carte apparaissent aussi ici. Collez ou modifiez la liste puis cliquez sur Enregistrer : la liste enregistrée devient exactement le contenu du champ, donc supprimer une ligne supprime son portail. Pour emporter la liste, copiez-la.",
+    impBtn: "Enregistrer",
     copyBtn: "Copier la liste",
     clearBtn: "Tout supprimer",
     clearAsk: "Supprimer tous les portails Ansiblex de ce navigateur ?",
-    impDone: "Portails ajoutés : {n}",
+    impDone: "Portails enregistrés : {n}",
     impBad: "lignes non reconnues : {n}",
     copied: "Copié dans le presse-papiers",
     jumpsJb: "Sauts : {n} · Ansiblex : {b} · portails seuls : {g}",
-    legJb: "portail Ansiblex (vif : utilisé pour les itinéraires)",
+    legJb: "Ansiblex de votre alliance (utilisé pour les itinéraires)",
     mapShow: "Sur la carte",
     chipJove: "Observatoires jove",
     chipIncShow: "Afficher sur la carte",
@@ -1200,11 +1281,32 @@ const I18N = {
     tipJove: "Entourer les systèmes qui ont un observatoire jove.",
     tipDim: "Atténue tous les systèmes sans observatoire jove pour faire ressortir les observatoires. Ne fonctionne que si « Observatoires jove » est activé et ne change ni les filtres ni l’itinéraire.",
     tipRegions: "Noms des régions sur la carte dézoomée. Cliquez sur un nom pour mettre la région en évidence.",
-    tipJb: "Dessiner les Ansiblex connus en arcs : vifs — utilisés pour vos itinéraires, pâles — autres alliances.",
+    tipJb: "Dessiner les Ansiblex connus en arcs : verts — ceux de votre alliance (utilisés pour les itinéraires), rouges — ceux des autres alliances.",
     chipTerr: "Territoire de l’alliance",
     tipTerr: "Colore la souveraineté de l’alliance choisie pour les itinéraires Ansiblex. Données en direct d’ESI.",
     terrN: "Systèmes sur son territoire : {n}",
     legTerr: "territoire de l’alliance choisie",
+    jbFromHere: "Ansiblex depuis ici",
+    jbConnect: "Relier par Ansiblex à {a} · {d}",
+    jbCancel: "Annuler l’Ansiblex depuis {a}",
+    jbRemove: "Supprimer l’Ansiblex {a} ↔ {b}",
+    jbTooFar: "Trop loin : {d} (un Ansiblex porte à 5 al)",
+    jbNotNull: "Un Ansiblex ne peut se trouver qu’en nulle sous souveraineté de joueurs",
+    jbHasGate: "{s} a déjà un Ansiblex (un par système)",
+    jbDraft: "Ansiblex depuis {a} : clic droit sur un système à moins de 5 al",
+    jbRule: "Depuis la mise à jour de septembre 2026, seuls les membres de l’alliance propriétaire peuvent utiliser un Ansiblex. Portée jusqu’à 5 al, un par système, uniquement en nulle sous souveraineté de joueurs.",
+    drawTitle: "Tracer à la main",
+    drawHint: "Clic droit sur un système en nulle → « Ansiblex depuis ici », puis clic droit sur un autre système à moins de 5 al → « Relier ». Clic droit sur un système avec un portail pour le supprimer.",
+    legJbOther: "Ansiblex d’une autre alliance",
+    jbFromPh: "Système de départ…",
+    jbToPh: "Système d’arrivée…",
+    jbAsText: "En texte : coller ou copier une liste",
+    jbAdded: "Ajouté : {a} » {b}",
+    jbFromFirst: "Choisissez d’abord le système de départ du portail",
+    showOnMap: "Afficher sur la carte",
+    tipSecRange: "Faites glisser les extrémités pour ne garder que les systèmes dont la sécurité (telle que le jeu l’affiche) est dans cette plage. Fonctionne avec les boutons ci-dessus.",
+    secFromL: "Sécurité de",
+    secToL: "Sécurité à",
   },
   ar: {
     title: 'خريطة نيو إيدن', stats: 'الأنظمة: {s} · القفزات: {j} · المراصد: {o}', search: 'ابحث عن نظام…', notFound: 'غير موجود',
@@ -1292,37 +1394,20 @@ const I18N = {
     allyWith: "تحالفات لها بوابات معروفة",
     allyOther: "مالكو سيادة آخرون",
     jbTitle: "بوابات القفز Ansiblex",
-    jbIntro: "لا تحتوي واجهة EVE البرمجية على قائمة عامة لبوابات Ansiblex: لا يُظهر ESI البوابة إلا لشخصية مسجّلة الدخول موجودة في قائمة الوصول الخاصة بها. حمّلها بشخصيتك أو الصق القائمة التي يشاركها تحالفك. يستخدم المسار بوابات التحالف المختار فقط ويحسب كل بوابة قفزة واحدة.",
+    jbIntro: "لا تحتوي واجهة EVE البرمجية على قائمة عامة لبوابات Ansiblex، لذا تحتفظ الخريطة بقائمتها الخاصة: ارسم البوابات على الخريطة أو الصق قائمة بالأسفل. تُحفظ على هذا الكمبيوتر في هذا المتصفح وتبقى بعد إعادة التحميل. يستخدم المسار بوابات التحالف المختار فقط ويحسب كل بوابة قفزة واحدة.",
     jbKnown: "البوابات في القائمة: {n} · المستخدمة في المسارات: {u}",
     jbNone: "لم يتم تحميل أي بوابات بعد.",
-    jbSso: "تم التحميل عبر EVE SSO: ‏{c}، {t}",
-    ssoTitle: "التحميل بشخصيتك (EVE SSO)",
-    ssoHelp: "إعداد لمرة واحدة: أنشئ تطبيقًا على {link} بالصلاحيات {s1} و{s2} وعنوان الرجوع الظاهر أدناه، ثم انسخ هنا معرّف Client ID الخاص به. تسجّل الدخول على موقع CCP؛ ولا يُحفظ رمز الدخول.",
-    clientId: "Client ID",
-    callback: "عنوان الرجوع (Callback URL)",
-    ssoLogin: "تسجيل الدخول عبر EVE Online",
-    ssoPaste: "بعد تسجيل الدخول ينتقل المتصفح إلى عنوان الرجوع (ظهور صفحة خطأ هناك أمر طبيعي). انسخ العنوان الكامل من ذلك التبويب والصقه هنا:",
-    ssoGo: "تحميل البوابات",
-    ssoNeedId: "أدخل أولًا Client ID وعنوان الرجوع (http:// أو https://).",
-    ssoBadUrl: "لا يحتوي هذا العنوان على رمز دخول أو أنه من محاولة سابقة. سجّل الدخول مرة أخرى.",
-    ssoToken: "جارٍ تسجيل الدخول…",
-    ssoSearch: "جارٍ البحث عن بوابات Ansiblex…",
-    ssoLoad: "جارٍ قراءة البوابات: {i} / {n}…",
-    ssoDone: "تم تحميل البوابات: {n}. الشخصية: ‏{c}.",
-    ssoNone: "لم يُعثر على بوابات Ansiblex: ‏{c} ليس في قائمة الوصول لأي بوابة.",
-    ssoPartial: "تم بلوغ حد أخطاء ESI، لذا قد تكون القائمة ناقصة.",
-    ssoFail: "خطأ: {e}",
-    impTitle: "استيراد قائمة",
-    impHint: "بوابة واحدة في كل سطر مع النظامين، مثل 1DQ1-A » 8QT-H4. يُؤخذ المالك من بيانات السيادة.",
-    impBtn: "استيراد",
+    impTitle: "البوابات المحفوظة",
+    impHint: "بوابة واحدة في كل سطر مع النظامين، مثل 1DQ1-A » 8QT-H4. تظهر هنا أيضًا البوابات المرسومة على الخريطة. الصق القائمة أو عدّلها ثم اضغط «حفظ»: تصبح القائمة المحفوظة مطابقة تمامًا لما في المربع، لذا فحذف سطر يزيل بوابته. لنقل القائمة إلى مكان آخر انسخها.",
+    impBtn: "حفظ",
     copyBtn: "نسخ القائمة",
     clearBtn: "حذف الكل",
     clearAsk: "حذف كل بوابات Ansiblex من هذا المتصفح؟",
-    impDone: "البوابات المضافة: {n}",
+    impDone: "البوابات المحفوظة: {n}",
     impBad: "أسطر غير معروفة: {n}",
     copied: "تم النسخ إلى الحافظة",
     jumpsJb: "القفزات: {n} · Ansiblex: ‏{b} · عبر البوابات فقط: {g}",
-    legJb: "بوابة Ansiblex (ساطعة: مستخدمة في المسارات)",
+    legJb: "Ansiblex تحالفك (يُستخدم في المسارات)",
     mapShow: "على الخريطة",
     chipJove: "مراصد الجوف",
     chipIncShow: "إظهار على الخريطة",
@@ -1343,11 +1428,32 @@ const I18N = {
     tipJove: "وضع دائرة حول الأنظمة التي فيها مرصد للجوف.",
     tipDim: "يعتّم كل الأنظمة التي ليس فيها مرصد للجوف لكي تبرز المراصد. يعمل فقط عند تشغيل «مراصد الجوف»، ولا يغيّر عوامل التصفية ولا المسار.",
     tipRegions: "أسماء المناطق على الخريطة المصغّرة. انقر على اسم لتمييز المنطقة.",
-    tipJb: "رسم بوابات Ansiblex المعروفة كأقواس: الساطعة — مستخدمة في مساراتك، الباهتة — تحالفات أخرى.",
+    tipJb: "رسم بوابات Ansiblex المعروفة كأقواس: الخضراء — بوابات تحالفك (تُستخدم في المسارات)، الحمراء — بوابات التحالفات الأخرى.",
     chipTerr: "أراضي التحالف",
     tipTerr: "يلوّن مناطق سيادة التحالف المختار لمسارات Ansiblex. بيانات حية من ESI.",
     terrN: "الأنظمة في أراضيه: {n}",
     legTerr: "أراضي التحالف المختار",
+    jbFromHere: "Ansiblex من هنا",
+    jbConnect: "ربط Ansiblex مع {a} · {d}",
+    jbCancel: "إلغاء Ansiblex من {a}",
+    jbRemove: "إزالة Ansiblex ‏{a} ↔ {b}",
+    jbTooFar: "بعيد جدًا: {d} (مدى Ansiblex هو 5 سنوات ضوئية)",
+    jbNotNull: "لا يمكن وضع Ansiblex إلا في المناطق المعدومة الأمان تحت سيادة اللاعبين",
+    jbHasGate: "يوجد في {s} بوابة Ansiblex بالفعل (واحدة لكل نظام)",
+    jbDraft: "Ansiblex من {a}: انقر بالزر الأيمن على نظام ضمن 5 سنوات ضوئية",
+    jbRule: "منذ تحديث سبتمبر 2026 لا يستطيع استخدام Ansiblex إلا أعضاء التحالف المالك. مدى البوابة حتى 5 سنوات ضوئية، واحدة لكل نظام، وفقط في المناطق المعدومة الأمان تحت سيادة اللاعبين.",
+    drawTitle: "الرسم يدويًا",
+    drawHint: "انقر بالزر الأيمن على نظام معدوم الأمان ← «Ansiblex من هنا»، ثم انقر بالزر الأيمن على نظام آخر ضمن 5 سنوات ضوئية ← «ربط». انقر بالزر الأيمن على نظام فيه بوابة لإزالتها.",
+    legJbOther: "Ansiblex تحالف آخر",
+    jbFromPh: "من النظام…",
+    jbToPh: "إلى النظام…",
+    jbAsText: "كنص: الصق قائمة أو انسخها",
+    jbAdded: "تمت الإضافة: {a} » {b}",
+    jbFromFirst: "اختر أولًا النظام الذي تبدأ منه البوابة",
+    showOnMap: "إظهار على الخريطة",
+    tipSecRange: "اسحب الطرفين لإبقاء الأنظمة التي يقع أمانها (كما تعرضه اللعبة) ضمن هذا النطاق فقط. يعمل مع الأزرار أعلاه.",
+    secFromL: "الأمان من",
+    secToL: "الأمان إلى",
   },
   ru: {
     title: 'Карта New Eden', stats: 'Систем: {s} · Переходов: {j} · Обсерваторий: {o}', search: 'Найти систему…', notFound: 'не найдено',
@@ -1435,37 +1541,20 @@ const I18N = {
     allyWith: "Альянсы с известными гейтами",
     allyOther: "Другие владельцы суверенитета",
     jbTitle: "Ансиблексы (Ansiblex Jump Gate)",
-    jbIntro: "В API EVE нет публичного списка ансиблексов: ESI показывает гейт только залогиненному персонажу, который есть в его списке доступа. Загрузите их своим персонажем или вставьте список, который раздаёт ваш альянс. Маршрут использует только гейты выбранного альянса, каждый считается за один прыжок.",
+    jbIntro: "В API EVE нет публичного списка ансиблексов, поэтому карта ведёт свой: рисуйте гейты на карте или вставьте список ниже. Они сохраняются на этом компьютере, в этом браузере, и остаются после перезагрузки страницы. Маршрут использует только гейты выбранного альянса, каждый считается за один прыжок.",
     jbKnown: "Гейтов в списке: {n} · используются в маршруте: {u}",
     jbNone: "Гейты ещё не загружены.",
-    jbSso: "Загружено через EVE SSO: {c}, {t}",
-    ssoTitle: "Загрузить персонажем (EVE SSO)",
-    ssoHelp: "Один раз: создайте приложение на {link} со скоупами {s1} и {s2} и callback URL из поля ниже, затем скопируйте сюда его Client ID. Вы входите на сайте CCP; токен входа не сохраняется.",
-    clientId: "Client ID",
-    callback: "Callback URL",
-    ssoLogin: "Войти через EVE Online",
-    ssoPaste: "После входа браузер перейдёт на callback-адрес (страница с ошибкой там — это нормально). Скопируйте полный адрес из той вкладки и вставьте сюда:",
-    ssoGo: "Загрузить гейты",
-    ssoNeedId: "Сначала введите Client ID и callback URL (http:// или https://).",
-    ssoBadUrl: "В этом адресе нет кода входа или он от прошлой попытки. Войдите ещё раз.",
-    ssoToken: "Вход…",
-    ssoSearch: "Ищу ансиблексы…",
-    ssoLoad: "Читаю гейты: {i} / {n}…",
-    ssoDone: "Загружено гейтов: {n}. Персонаж: {c}.",
-    ssoNone: "Ансиблексы не найдены: {c} нет в списках доступа ни одного гейта.",
-    ssoPartial: "Достигнут лимит ошибок ESI, список может быть неполным.",
-    ssoFail: "Ошибка: {e}",
-    impTitle: "Импорт списка",
-    impHint: "Один гейт на строку, обе системы, например: 1DQ1-A » 8QT-H4. Владелец берётся из суверенитета.",
-    impBtn: "Импортировать",
+    impTitle: "Сохранённые гейты",
+    impHint: "Один гейт на строку, обе системы, например: 1DQ1-A » 8QT-H4. Гейты, нарисованные на карте, тоже появляются здесь. Вставьте или отредактируйте список и нажмите «Сохранить»: сохранённый список станет ровно таким, как в поле, поэтому удалённая строка удаляет и гейт. Чтобы забрать список, скопируйте его.",
+    impBtn: "Сохранить",
     copyBtn: "Скопировать список",
     clearBtn: "Удалить все",
     clearAsk: "Удалить все ансиблексы из этого браузера?",
-    impDone: "Добавлено гейтов: {n}",
+    impDone: "Сохранено гейтов: {n}",
     impBad: "не распознано строк: {n}",
     copied: "Скопировано в буфер обмена",
     jumpsJb: "Прыжков: {n} · через ансиблекс: {b} · только врата: {g}",
-    legJb: "ансиблекс (яркий — используется в маршруте)",
+    legJb: "ансиблекс вашего альянса (в маршрутах)",
     mapShow: "На карте",
     chipJove: "Обсерватории Джовов",
     chipIncShow: "Показывать на карте",
@@ -1486,11 +1575,32 @@ const I18N = {
     tipJove: "Обводить кружком системы с обсерваторией Джовов.",
     tipDim: "Приглушает все системы без обсерватории Джовов, чтобы обсерватории были заметнее. Работает только при включённых «Обсерваториях Джовов» и не меняет ни фильтры, ни маршрут.",
     tipRegions: "Названия регионов на отдалённой карте. Клик по названию подсвечивает регион.",
-    tipJb: "Рисовать известные ансиблексы дугами: яркие — используются в ваших маршрутах, бледные — чужих альянсов.",
+    tipJb: "Рисовать известные ансиблексы дугами: зелёные — вашего альянса (используются в маршрутах), красные — других альянсов.",
     chipTerr: "Территория альянса",
     tipTerr: "Подсвечивает суверенитет альянса, выбранного для маршрутов через ансиблексы. Живые данные из ESI.",
     terrN: "Систем на территории: {n}",
     legTerr: "территория выбранного альянса",
+    jbFromHere: "Ансиблекс отсюда",
+    jbConnect: "Соединить ансиблексом с {a} · {d}",
+    jbCancel: "Отменить ансиблекс из {a}",
+    jbRemove: "Удалить ансиблекс {a} ↔ {b}",
+    jbTooFar: "Слишком далеко: {d} (ансиблекс достаёт на 5 св. лет)",
+    jbNotNull: "Ансиблекс можно поставить только в нулях с суверенитетом игроков",
+    jbHasGate: "В {s} уже есть ансиблекс (один на систему)",
+    jbDraft: "Ансиблекс из {a}: правый клик по системе в радиусе 5 св. лет",
+    jbRule: "С обновления сентября 2026 ансиблексом могут пользоваться только члены альянса-владельца. Гейт достаёт до 5 св. лет, один на систему, только в нулях с суверенитетом игроков.",
+    drawTitle: "Нарисовать вручную",
+    drawHint: "Правый клик по системе в нулях → «Ансиблекс отсюда», затем правый клик по другой системе в радиусе 5 св. лет → «Соединить». Правый клик по системе с гейтом — удалить его.",
+    legJbOther: "ансиблекс другого альянса",
+    jbFromPh: "Откуда…",
+    jbToPh: "Куда…",
+    jbAsText: "Текстом: вставить или скопировать список",
+    jbAdded: "Добавлен: {a} » {b}",
+    jbFromFirst: "Сначала выберите систему, откуда идёт гейт",
+    showOnMap: "Показать на карте",
+    tipSecRange: "Двигайте края, чтобы оставить только системы с безопасностью в этом диапазоне (как её показывает игра). Работает вместе с кнопками выше.",
+    secFromL: "Безопасность от",
+    secToL: "Безопасность до",
   },
 };
 let lang = 'en';
@@ -1512,6 +1622,8 @@ const opt = { jove: true, dim: false, regions: true, inc: true, jb: true, terr: 
 try { const s = JSON.parse(localStorage.getItem('eveMapOpts') || '{}'); for (const k in opt) if (typeof s[k] === 'boolean') opt[k] = s[k]; } catch (e) {}
 const saveOpts = () => { try { localStorage.setItem('eveMapOpts', JSON.stringify(opt)); } catch (e) {} };
 const INC_COL = '#a6c43a', INC_FILL = 'rgba(166,196,58,.35)', JB_COL = '94,224,255';
+const JB_MINE = '61,220,132', JB_OTHER = '255,77,77';   // Ansiblex lines: your alliance / other alliances
+const jbColor = g => `rgb(${g.use ? JB_MINE : JB_OTHER})`;
 let hover = -1, sel = -1;
 let group = null;                       // highlighted region/constellation: { type: 'r' | 'c', id }
 const INGROUP = new Uint8Array(N), FADE = new Uint8Array(N);
@@ -1588,17 +1700,18 @@ function draw() {
     ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2; ctx.stroke();
   }
 
-  // Ansiblex gates: arcs, bright when routes may use them
+  // Ansiblex gates as arcs: green — the chosen alliance's (routes use them), red — everybody else's;
+  // gates outside the highlighted region/filter are drawn first and faint, your own ones on top
   if (opt.jb && JB.gates.length) {
-    for (const bright of [false, true]) {
+    for (const [mine, faded] of [[false, true], [true, true], [false, false], [true, false]]) {
       ctx.beginPath();
       for (const g of JB.gates) {
-        if ((g.use && !(fadeAny && FADE[g.a] && FADE[g.b])) !== bright) continue;
+        if (!!g.use !== mine || !!(fadeAny && FADE[g.a] && FADE[g.b]) !== faded) continue;
         const x1 = SX[g.a], y1 = SY[g.a], x2 = SX[g.b], y2 = SY[g.b];
         if ((x1 < L && x2 < L) || (x1 > R && x2 > R) || (y1 < T && y2 < T) || (y1 > B && y2 > B)) continue;
         arcPath(g.a, g.b);
       }
-      ctx.strokeStyle = `rgba(${JB_COL},${bright ? 0.9 : 0.3})`; ctx.lineWidth = bright ? 1.6 : 1; ctx.stroke();
+      ctx.strokeStyle = `rgba(${mine ? JB_MINE : JB_OTHER},${faded ? 0.3 : 0.9})`; ctx.lineWidth = mine ? 1.8 : 1.5; ctx.stroke();
     }
   }
 
@@ -1609,6 +1722,18 @@ function draw() {
     ctx.beginPath(); ctx.arc(SX[o], SY[o], rr, 0, 6.2832);
     ctx.fillStyle = 'rgba(255,184,77,.05)'; ctx.fill();
     ctx.setLineDash([7, 5]); ctx.strokeStyle = 'rgba(255,184,77,.85)'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]);
+  }
+  // an Ansiblex being drawn: its 5 LY reach, and a preview towards the system under the pointer
+  if (jbDraft >= 0) {
+    const o = jbDraft;
+    ctx.beginPath(); ctx.arc(SX[o], SY[o], JB_RANGE * k, 0, 6.2832);
+    ctx.fillStyle = `rgba(${JB_COL},.05)`; ctx.fill();
+    ctx.setLineDash([7, 5]); ctx.strokeStyle = `rgba(${JB_COL},.85)`; ctx.lineWidth = 1.5; ctx.stroke();
+    if (hover >= 0 && hover !== o) {
+      ctx.beginPath(); arcPath(o, hover);
+      ctx.strokeStyle = jbLinkError(o, hover) ? '#e57b7b' : `rgb(${JB_COL})`; ctx.lineWidth = 2; ctx.stroke();
+    }
+    ctx.setLineDash([]);
   }
 
   // systems
@@ -1657,6 +1782,17 @@ function draw() {
   if (F.origin >= 0) {
     ctx.beginPath(); ctx.arc(SX[F.origin], SY[F.origin], r + 7, 0, 6.2832);
     ctx.strokeStyle = '#ffb84d'; ctx.lineWidth = 2.5; ctx.stroke();
+  }
+  if (jbDraft >= 0) {
+    ctx.beginPath(); ctx.arc(SX[jbDraft], SY[jbDraft], r + 7, 0, 6.2832);
+    ctx.strokeStyle = `rgb(${JB_COL})`; ctx.lineWidth = 2.5; ctx.stroke();
+    // the circle is flat but the range is 3D: ring the systems that really can take the other end
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      if (i === jbDraft || SX[i] < L || SX[i] > R || SY[i] < T || SY[i] > B || dist(jbDraft, i) > JB_RANGE || jbSiteError(i)) continue;
+      ctx.moveTo(SX[i] + r + 3, SY[i]); ctx.arc(SX[i], SY[i], r + 3, 0, 6.2832);
+    }
+    ctx.strokeStyle = `rgba(${JB_COL},.9)`; ctx.lineWidth = 1.5; ctx.stroke();
   }
   if (route.wps.length) drawRoute(r, L, R, T, B);
   for (const [i, col, w] of [[hover, 'rgba(255,255,255,.7)', 1.5], [sel, '#ffffff', 2.2]]) {
@@ -1738,7 +1874,7 @@ function drawLabels(r, z, grid) {
   if (!labelW) labelW = NAME.map(n => ctx.measureText(n).width);
   const order = [];
   const push = i => { if (i >= 0 && SX[i] > -50 && SX[i] < W + 10 && SY[i] > -10 && SY[i] < H + 20) order.push(i); };
-  push(sel); push(hover); push(F.origin);
+  push(sel); push(hover); push(F.origin); push(jbDraft);
   route.wps.forEach(push);
   if (z >= 2.5) for (const s of route.segs) s.forEach(push);
   if (sel >= 0) ADJ[sel].forEach(push);
@@ -1755,7 +1891,7 @@ function drawLabels(r, z, grid) {
   for (const i of order) {
     if (placed.has(i)) continue;
     const x = SX[i] + r + 3, y = SY[i] + 4;
-    const forced = i === sel || i === hover || i === F.origin;
+    const forced = i === sel || i === hover || i === F.origin || i === jbDraft;
     if (!grid.tryPlace([x - 1, y - 11, x + labelW[i] + 1, y + 3], forced)) continue;
     placed.add(i);
     const dimmed = FADE[i] && !forced && !(sel >= 0 && ADJ[sel].includes(i));
@@ -1892,7 +2028,8 @@ function setHover(i, px, py) {
   tip.innerHTML = `<b>${NAME[i]}</b> ${secHtml(i)}<div class="sub">${D.consts[CON[i]]} · ${D.regions[REG[i]]}</div>` +
     (JOVE[i] ? `<div>◯ ${t('jove')}</div>` : '') +
     (LIVE && LIVE.inc.has(SYSID[i]) ? `<div><span class="inc">◆</span> ${t('incursion')}</div>` : '') +
-    (JB_BY_SYS.has(i) ? `<div><span class="jbm">»</span> ${JB_BY_SYS.get(i).map(g => NAME[g.a === i ? g.b : g.a]).join(', ')}</div>` : '') +
+    (JB_BY_SYS.has(i) ? `<div>${JB_BY_SYS.get(i).map(g => `<span class="jbm" style="color:${jbColor(g)}">»</span> ${NAME[g.a === i ? g.b : g.a]}`).join(', ')}</div>` : '') +
+    (jbDraft >= 0 && i !== jbDraft ? `<div class="${jbLinkError(jbDraft, i) ? 'bad-c' : 'ok-c'}">» ${NAME[jbDraft]}: ${lyText(dist(jbDraft, i))}</div>` : '') +
     (F.origin >= 0 && i !== F.origin ? `<div class="sub">◎ ${NAME[F.origin]}: ${lyText(dist(F.origin, i))}</div>` : '');
   tip.style.display = 'block';
   const tw = tip.offsetWidth, th = tip.offsetHeight;
@@ -2028,7 +2165,8 @@ liveEl.addEventListener('click', () => { if (liveState === 'fail') loadLive(); }
 
 // ---------- filters ----------
 // sec: 'h' | 'l' | 'n'; planets: planet type indexes (all required); station: -1 = any station, 0..3 = service bits
-const F = { sec: new Set(), planets: new Set(), moons: 0, belts: 0, station: new Set(), sov: '', fw: '', inc: false,
+// secMin/secMax: the security slider, in tenths (-10 … 10 = -1.0 … 1.0, as the game shows it)
+const F = { sec: new Set(), secMin: -10, secMax: 10, planets: new Set(), moons: 0, belts: 0, station: new Set(), sov: '', fw: '', inc: false,
             ship: -1, jdc: 5, origin: -1 };
 
 // jump drives: base range in light years (EVE University wiki); Jump Drive Calibration adds 20% per level
@@ -2051,6 +2189,7 @@ const $ = id => document.getElementById(id);
 const secCat = i => { const d = secDisp(SEC[i]); return d >= 0.5 ? 'h' : d > 0 ? 'l' : 'n'; };
 function matches(i) {
   if (F.sec.size && !F.sec.has(secCat(i))) return 0;
+  if (secRangeOn()) { const d = Math.round(secDisp(SEC[i]) * 10); if (d < F.secMin || d > F.secMax) return 0; }
   for (const k of F.planets) if (!(PLAN[i][k] > 0)) return 0;
   if (MOONS[i] < F.moons || BELTS[i] < F.belts) return 0;
   if (F.station.size) {
@@ -2067,8 +2206,9 @@ function matches(i) {
   if (jumpOn() && (i === F.origin || !cynoAllowed(i) || dist(F.origin, i) > jumpRange())) return 0;
   return 1;
 }
+const secRangeOn = () => F.secMin > -10 || F.secMax < 10;
 function computeMatches() {
-  filterActive = !!(F.sec.size || F.planets.size || F.moons > 0 || F.belts > 0 || F.station.size || F.sov || F.fw || F.inc || jumpOn());
+  filterActive = !!(F.sec.size || secRangeOn() || F.planets.size || F.moons > 0 || F.belts > 0 || F.station.size || F.sov || F.fw || F.inc || jumpOn());
   matchCount = 0;
   for (let i = 0; i < N; i++) matchCount += (MATCH[i] = filterActive ? matches(i) : 0);
   renderFilterResults();
@@ -2095,7 +2235,7 @@ const OPT_CHIPS = {
   regions: ['optRegions', 'tipRegions', '', ''],
   inc: ['chipIncShow', 'tipIncShow', 'c-inc', '<span class="ic-dia"></span>'],
   terr: ['chipTerr', 'tipTerr', 'c-terr', '<span class="ic-terr"></span>'],
-  jb: ['optJb', 'tipJb', 'c-jb', '<svg class="ic-arc" width="14" height="8" viewBox="0 0 14 8" aria-hidden="true"><path d="M1 7Q7-2 13 7" fill="none" stroke="#5ee0ff" stroke-width="1.6"/></svg>'],
+  jb: ['optJb', 'tipJb', 'c-jb', '<svg class="ic-arc" width="18" height="8" viewBox="0 0 18 8" aria-hidden="true"><path d="M1 7Q4.5 0 8 7" fill="none" stroke="rgb(61,220,132)" stroke-width="1.6"/><path d="M10 7Q13.5 0 17 7" fill="none" stroke="rgb(255,77,77)" stroke-width="1.6"/></svg>'],
 };
 function optChip(k) {
   const [label, tip, cls, icon] = OPT_CHIPS[k], dep = k === 'dim' && !opt.jove;
@@ -2211,8 +2351,31 @@ $('fShip').addEventListener('change', e => {
 $('fSov').addEventListener('change', e => { F.sov = e.target.value; computeMatches(); });
 $('fFw').addEventListener('change', e => { F.fw = e.target.value; computeMatches(); });
 $('fListBox').addEventListener('toggle', renderFilterList);
+
+// security slider: the track is the game's security colours, the parts outside the range are darkened
+const secMinEl = $('fSecMin'), secMaxEl = $('fSecMax');
+$('srTrack').style.background = `linear-gradient(to right, ${SECCOL[0]} 0%, ${SECCOL[0]} 50%, ` +
+  SECCOL.slice(1).map((c, k) => `${c} ${55 + k * 5}%`).join(', ') + ')';
+const secText = v => `<span style="color:${SECCOL[v <= 0 ? 0 : v]}">${(v / 10).toFixed(1)}</span>`;
+function renderSecRange() {
+  secMinEl.value = F.secMin; secMaxEl.value = F.secMax;
+  $('srOutL').style.width = (F.secMin + 10) * 5 + '%';
+  $('srOutR').style.width = (10 - F.secMax) * 5 + '%';
+  $('srMin').innerHTML = secText(F.secMin); $('srMax').innerHTML = secText(F.secMax);
+  // when the thumbs meet, the one that can still move away goes on top (the upper one near -1.0, the lower one near 1.0)
+  const minTop = F.secMin > 0;
+  secMinEl.style.zIndex = minTop ? 2 : 1; secMaxEl.style.zIndex = minTop ? 1 : 2;
+}
+for (const el of [secMinEl, secMaxEl]) el.addEventListener('input', () => {
+  let lo = +secMinEl.value, hi = +secMaxEl.value;
+  if (lo > hi) { if (el === secMinEl) hi = lo; else lo = hi; }   // the thumbs push each other instead of crossing
+  F.secMin = lo; F.secMax = hi;
+  renderSecRange(); computeMatches();
+});
+renderSecRange();
 $('fReset').addEventListener('click', () => {
   F.sec.clear(); F.planets.clear(); F.station.clear(); F.moons = F.belts = 0; F.sov = F.fw = ''; F.inc = false; F.origin = -1;
+  F.secMin = -10; F.secMax = 10; renderSecRange();
   $('fMoons').value = $('fBelts').value = '';
   renderJump(); renderFilterChips(); renderLiveSelects(); computeMatches();
   if (sel >= 0) select(sel, false);
@@ -2357,39 +2520,38 @@ document.getElementById('zin').onclick = () => { anim = null; zoomAt(W / 2, H / 
 document.getElementById('zout').onclick = () => { anim = null; zoomAt(W / 2, H / 2, 1 / 1.6); };
 document.getElementById('zfit').onclick = flyFit;
 // ---------- Ansiblex jump gates ----------
-// ESI has no public list of them. A logged-in character can find the gates on whose access list it is
-// (structure search + structure info), or a list can be pasted in. Everything stays in this browser.
-const ANSIBLEX_TYPE = 35841;
-const JB = { gates: [], names: {}, sso: null };   // gate: { a, b, owner: alliance id (0 = take it from sovereignty), src: 's' SSO | 'i' import, use }
+// ESI has no public list of them, so the map keeps its own: gates drawn on the map or pasted as a list,
+// saved in this browser (localStorage) so they survive a reload.
+const JB = { gates: [] };   // gate: { a, b, owner: alliance id (0 = take it from sovereignty), use }
 let jbAlly = '';                                   // whose gates routes may use: '' none, '*' every gate in the list, or an alliance id
 let JB_ADJ = new Map(), JB_BY_SYS = new Map();     // system -> systems reachable by a usable gate / system -> every known gate there
 let TERR = [], TERR_EDGES = [];                    // sovereignty of the chosen alliance: its systems, and gates between two of them
 const pairKey = (a, b) => a < b ? a * N + b : b * N + a;
 function loadJb() {
-  JB.gates = []; JB.names = {}; JB.sso = null;
+  JB.gates = [];
   try {
     const d = JSON.parse(localStorage.getItem('eveMapJB') || 'null');
     if (d && Array.isArray(d.gates)) {
-      for (const [sa, sb, owner, src] of d.gates) {
+      for (const [sa, sb, owner] of d.gates) {
         const a = BY_SID.get(sa), b = BY_SID.get(sb);
-        if (a !== undefined && b !== undefined && a !== b) JB.gates.push({ a, b, owner: +owner || 0, src: src === 's' ? 's' : 'i' });
+        if (a !== undefined && b !== undefined && a !== b) JB.gates.push({ a, b, owner: +owner || 0 });
       }
-      JB.names = d.names || {}; JB.sso = d.sso || null;
     }
   } catch (e) {}
   try { jbAlly = localStorage.getItem('eveMapAlly') || ''; } catch (e) {}
+  // leftovers of the EVE SSO login that the page no longer has
+  try { localStorage.removeItem('eveMapSSO'); localStorage.removeItem('eveMapSSOPending'); } catch (e) {}
 }
 function saveJb() {
   try {
-    localStorage.setItem('eveMapJB', JSON.stringify({ v: 1, names: JB.names, sso: JB.sso,
-      gates: JB.gates.map(g => [SYSID[g.a], SYSID[g.b], g.owner, g.src]) }));
+    localStorage.setItem('eveMapJB', JSON.stringify({ v: 1, gates: JB.gates.map(g => [SYSID[g.a], SYSID[g.b], g.owner]) }));
   } catch (e) {}
 }
 const saveAlly = () => { try { localStorage.setItem('eveMapAlly', jbAlly); } catch (e) {} };
 const sovAlliance = i => ((LIVE && LIVE.sov.get(SYSID[i])) || {}).alliance_id || 0;
-// owner of a gate: the alliance of the structure's corporation (EVE SSO), otherwise whoever holds sovereignty there
+// owner of a gate: the alliance it was drawn for, otherwise whoever holds sovereignty in its systems
 const gateOwner = g => g.owner || sovAlliance(g.a) || sovAlliance(g.b);
-const allyName = id => JB.names[id] || (LIVE && LIVE.names.get(+id)) || `#${id}`;
+const allyName = id => (LIVE && LIVE.names.get(+id)) || `#${id}`;
 function rebuildJb() {
   JB_ADJ = new Map(); JB_BY_SYS = new Map();
   const add = (m, k, v) => (m.get(k) || m.set(k, []).get(k)).push(v);
@@ -2421,6 +2583,7 @@ function showTerritory() {
 // gates, alliance or sovereignty changed: rebuild, re-route, redraw
 function jbChanged() {
   rebuildJb(); renderJbUI();
+  if (jbDlg.open) fillJbText(false);
   if (route.wps.length) { computeRoute(); renderRoute(); }
   if (sel >= 0) select(sel, false); else redraw();
 }
@@ -2446,7 +2609,7 @@ function parseGateList(text) {
       const i = byName.get(tok.toLowerCase());
       if (i !== undefined && !found.includes(i)) { found.push(i); if (found.length === 2) break; }
     }
-    if (found.length === 2) out.push({ a: found[0], b: found[1], owner: 0, src: 'i' }); else bad.push(line.trim());
+    if (found.length === 2) out.push({ a: found[0], b: found[1], owner: 0 }); else bad.push(line.trim());
   }
   return { out, bad };
 }
@@ -2455,7 +2618,7 @@ function jbRow(i) {
   if (!list) return '';
   return kv(`<span class="jbm">»</span> ${t('ansiblex')}`, list.map(g => {
     const o = g.a === i ? g.b : g.a, own = gateOwner(g);
-    return `<span class="jbgate${g.use ? '' : ' muted'}">» <button class="link" data-i="${o}">${NAME[o]}</button>` +
+    return `<span class="jbgate"><b style="color:${jbColor(g)}">»</b> <button class="link" data-i="${o}">${NAME[o]}</button>` +
       (own ? ` <span class="muted">· ${esc(allyName(own))}</span>` : '') + '</span>';
   }).join(''));
 }
@@ -2468,7 +2631,6 @@ function allyOptions() {
   const withG = [...cnt].map(([id, n]) => [String(id), `${allyName(id)} (${fmt(n)})`]);
   const others = new Set();
   if (LIVE) for (const s of LIVE.sov.values()) if (s.alliance_id && !cnt.has(s.alliance_id)) others.add(s.alliance_id);
-  if (JB.sso && JB.sso.ally && !cnt.has(JB.sso.ally)) others.add(JB.sso.ally);
   const oth = [...others].map(id => [String(id), allyName(id)]);
   if (jbAlly && jbAlly !== '*' && !withG.some(o => o[0] === jbAlly) && !oth.some(o => o[0] === jbAlly)) oth.push([jbAlly, allyName(jbAlly)]);
   const opts = l => l.sort((a, b) => coll.compare(a[1], b[1])).map(([v, s]) => `<option value="${v}">${esc(s)}</option>`).join('');
@@ -2484,143 +2646,28 @@ function renderJbUI() {
   const terr = TERR.length ? t('terrN').replace('{n}', fmt(TERR.length)) : '';
   $('rtTerr').textContent = terr;
   $('jbStatus').innerHTML = (JB.gates.length ? esc(t('jbKnown').replace('{n}', fmt(JB.gates.length)).replace('{u}', fmt(use)))
-      : `<span class="muted">${esc(t('jbNone'))}</span>`) + (terr ? `<div>${esc(terr)}</div>` : '') +
-    (JB.sso ? `<div class="muted">${esc(t('jbSso').replace('{c}', JB.sso.char)
-      .replace('{t}', new Date(JB.sso.at).toLocaleString(loc(), { dateStyle: 'short', timeStyle: 'short' })))}</div>` : '');
-  $('ssoHelp').innerHTML = esc(t('ssoHelp'))
-    .replace('{link}', '<a href="https://developers.eveonline.com/applications" target="_blank" rel="noopener">developers.eveonline.com</a>')
-    .replace('{s1}', '<code>esi-search.search_structures.v1</code>').replace('{s2}', '<code>esi-universe.read_structures.v1</code>');
+      : `<span class="muted">${esc(t('jbNone'))}</span>`) + (terr ? `<div>${esc(terr)}</div>` : '');
+  renderJbList();
 }
 for (const s of ['rtAlly', 'jbAlly']) $(s).addEventListener('change', e => { jbAlly = e.target.value; saveAlly(); jbChanged(); showTerritory(); });
 
-// ---------- EVE SSO (authorization code + PKCE, no client secret, works from a local file) ----------
-const SSO = 'https://login.eveonline.com/v2/oauth/';
-const SSO_SCOPES = 'esi-search.search_structures.v1 esi-universe.read_structures.v1';
-const b64url = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-// a page opened from disk can't be a callback, so the address the login lands on is pasted back by hand
-const defaultCallback = () => /^https?:$/.test(location.protocol) ? location.origin + location.pathname : 'http://localhost/eve-map-callback';
-let ssoNext = null, ssoPending = null, ssoBusy = false;
-// the verifier is prepared ahead, so the login window opens right in the click (no popup blocker)
-async function prepareSso() {
-  if (!window.crypto || !crypto.subtle) return;
-  const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
-  const challenge = b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
-  ssoNext = { verifier, challenge, state: b64url(crypto.getRandomValues(new Uint8Array(12))) };
-}
-const ssoSettings = () => { try { return JSON.parse(localStorage.getItem('eveMapSSO') || '{}'); } catch (e) { return {}; } };
-function ssoMsg(text, cls = '') { const el = $('ssoMsg'); el.textContent = text; el.className = 'jb-msg ' + cls; }
-function ssoLogin() {
-  const clientId = $('ssoId').value.trim(), callback = $('ssoCb').value.trim();
-  if (!clientId || !/^https?:\/\/./i.test(callback)) return ssoMsg(t('ssoNeedId'), 'err');
-  if (!ssoNext) return ssoMsg(t('ssoFail').replace('{e}', 'crypto'), 'err');
-  try { localStorage.setItem('eveMapSSO', JSON.stringify({ clientId, callback })); } catch (e) {}
-  ssoPending = { ...ssoNext, clientId, callback };
-  try { localStorage.setItem('eveMapSSOPending', JSON.stringify(ssoPending)); } catch (e) {}
-  ssoNext = null; prepareSso();
-  window.open(SSO + 'authorize/?' + new URLSearchParams({ response_type: 'code', redirect_uri: callback, client_id: clientId,
-    scope: SSO_SCOPES, code_challenge: ssoPending.challenge, code_challenge_method: 'S256', state: ssoPending.state }), '_blank', 'noopener');
-  $('ssoPasteBox').hidden = false; ssoMsg('');
-}
-function ssoPasted() {
-  let code = '', state = '';
-  try { const u = new URL($('ssoPaste').value.trim()); code = u.searchParams.get('code') || ''; state = u.searchParams.get('state') || ''; } catch (e) {}
-  if (!code) return ssoMsg(t('ssoBadUrl'), 'err');
-  return ssoFinish(code, state);
-}
-async function ssoFinish(code, state) {
-  let p = ssoPending;
-  if (!p || p.state !== state) { try { p = JSON.parse(localStorage.getItem('eveMapSSOPending') || 'null'); } catch (e) { p = null; } }
-  if (!p || p.state !== state) return ssoMsg(t('ssoBadUrl'), 'err');
-  if (ssoBusy) return;
-  ssoBusy = true;
-  try {
-    ssoMsg(t('ssoToken'));
-    const r = await fetch(SSO + 'token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ grant_type: 'authorization_code', code, client_id: p.clientId, code_verifier: p.verifier }) });
-    if (!r.ok) throw new Error(`SSO ${r.status}`);
-    const tok = await r.json();
-    ssoPending = null;
-    try { localStorage.removeItem('eveMapSSOPending'); } catch (e) {}
-    await loadGatesWithToken(tok.access_token);   // the token is used once and forgotten
-    $('ssoPasteBox').hidden = true; $('ssoPaste').value = '';
-  } catch (err) {
-    ssoMsg(t('ssoFail').replace('{e}', err.message || String(err)), 'err');
-  } finally { ssoBusy = false; }
-}
-function jwtPayload(tok) {
-  const s = tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-  return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(s), c => c.charCodeAt(0))));
-}
-async function loadGatesWithToken(token) {
-  const pl = jwtPayload(token), charId = +String(pl.sub).split(':').pop(), charName = pl.name || `#${charId}`;
-  const auth = { headers: { Authorization: 'Bearer ' + token } };
-  const getJ = async (path, opts) => {
-    const r = await fetch(ESI + path, opts);
-    if (!r.ok) { const e = new Error(`ESI ${r.status}`); e.status = r.status; e.remain = r.headers.get('x-esi-error-limit-remain'); throw e; }
-    return r.json();
-  };
-  ssoMsg(t('ssoSearch'));
-  const [aff] = await getJ('/characters/affiliation/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([charId]) });
-  // Ansiblex names look like "1DQ1-A » 8QT-H4 - Name", so search for the arrow
-  const found = await getJ(`/characters/${charId}/search/?categories=structure&strict=false&search=${encodeURIComponent(' » ')}`, auth);
-  const ids = found.structure || [], queue = ids.slice(), rows = [];
-  let done = 0, stopped = false;
-  const worker = async () => {
-    while (queue.length && !stopped) {
-      const id = queue.shift();
-      try { rows.push(await getJ(`/universe/structures/${id}/`, auth)); }
-      catch (e) { if (e.status === 420 || (e.remain !== null && e.remain !== undefined && +e.remain < 10)) stopped = true; }   // stay clear of the ESI error ban
-      done++; ssoMsg(t('ssoLoad').replace('{i}', fmt(done)).replace('{n}', fmt(ids.length)));
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(8, ids.length) }, worker));
-  const gates = [], corps = new Set();
-  for (const s of rows) {
-    if (s.type_id !== ANSIBLEX_TYPE) continue;
-    const a = BY_SID.get(s.solar_system_id);
-    const b = byName.get(((s.name || '').split('»')[1] || '').trim().split(/\s+/)[0].toLowerCase());
-    if (a === undefined || b === undefined || a === b) continue;
-    gates.push({ a, b, corp: s.owner_id }); corps.add(s.owner_id);
-  }
-  // structure owner (corporation) -> alliance, and the alliance names
-  const corpAlly = new Map();
-  await Promise.all([...corps].map(async c => { try { corpAlly.set(c, (await getJ(`/corporations/${c}/`)).alliance_id || 0); } catch (e) { corpAlly.set(c, 0); } }));
-  const allyIds = [...new Set([...corpAlly.values(), (aff && aff.alliance_id) || 0])].filter(Boolean);
-  if (allyIds.length) {
-    try {
-      const names = await getJ('/universe/names/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(allyIds) });
-      for (const x of names) JB.names[x.id] = x.name;
-    } catch (e) {}
-  }
-  JB.gates = JB.gates.filter(g => g.src !== 's');   // a fresh login replaces the previous SSO list
-  mergeGates(gates.map(g => ({ a: g.a, b: g.b, owner: corpAlly.get(g.corp) || 0, src: 's' })));
-  JB.sso = { char: charName, ally: (aff && aff.alliance_id) || 0, at: Date.now() };
-  if (!jbAlly && JB.sso.ally) { jbAlly = String(JB.sso.ally); saveAlly(); }
-  saveJb(); jbChanged();
-  const n = new Set(gates.map(g => pairKey(g.a, g.b))).size;
-  ssoMsg((n ? t('ssoDone').replace('{n}', fmt(n)) : t('ssoNone')).replace('{c}', charName) + (stopped ? ' ' + t('ssoPartial') : ''), n ? 'ok' : 'err');
-}
-// served over http(s) with this page as the callback: the login comes straight back here
-async function handleSsoRedirect() {
-  const q = new URLSearchParams(location.search);
-  if (!q.has('code') || !q.has('state')) return;
-  history.replaceState(null, '', location.pathname + location.hash);
-  openJbDialog();
-  await ssoFinish(q.get('code'), q.get('state'));
-}
-// another tab (the login one) updated the gates
+// another open tab of the map changed the gates or the alliance
 window.addEventListener('storage', e => { if (e.key === 'eveMapJB' || e.key === 'eveMapAlly') { loadJb(); jbChanged(); } });
 
-// ---------- Ansiblex dialog ----------
-const jbDlg = $('jbDlg');
+// ---------- Ansiblex dialog: the saved gates as an editable list ----------
+const jbDlg = $('jbDlg'), jbText = $('jbText');
+let jbTextDirty = false;   // the list is being edited: don't overwrite it until it is saved
+const gateListText = () => JB.gates.map(g => `${NAME[g.a]} » ${NAME[g.b]}`).sort((a, b) => a.localeCompare(b)).join('\n');
+function fillJbText(force) {
+  if (!force && jbTextDirty) return;
+  jbText.value = gateListText(); jbTextDirty = false;
+}
 function openJbDialog() {
-  const s = ssoSettings();
-  if (!$('ssoId').value) $('ssoId').value = s.clientId || '';
-  if (!$('ssoCb').value) $('ssoCb').value = s.callback || defaultCallback();
-  renderJbUI();
-  if (!ssoNext) prepareSso();
+  renderJbUI(); fillJbText(true); impMsg('');
+  jbPickFrom = -1; jbFrom.value = jbTo.value = ''; renderJbPick(); jbAddMsg('');
   closeCtx(); hideHtip(); collapseControlsOnPhone();
   if (!jbDlg.open) jbDlg.showModal();
+  if (!isPhone()) jbFrom.focus();   // on a phone this would pop the keyboard up over the dialog
 }
 function impMsg(text, cls = '') { const el = $('jbImpMsg'); el.textContent = text; el.className = 'jb-msg ' + cls; }
 $('rtJb').addEventListener('click', openJbDialog);
@@ -2629,29 +2676,136 @@ jbDlg.addEventListener('click', e => {   // a click on the backdrop closes it
   const r = jbDlg.getBoundingClientRect();
   if (e.target === jbDlg && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) jbDlg.close();
 });
-$('ssoLogin').addEventListener('click', ssoLogin);
-$('ssoGo').addEventListener('click', ssoPasted);
-$('ssoPaste').addEventListener('keydown', e => { if (e.key === 'Enter') ssoPasted(); });
+jbText.addEventListener('input', () => { jbTextDirty = true; });
+// "Save": the list becomes exactly what is in the box (a deleted line removes its gate);
+// gates that were already there keep their owner
 $('jbImport').addEventListener('click', () => {
-  const { out, bad } = parseGateList($('jbText').value);
-  const added = mergeGates(out);
-  if (out.length && !jbAlly) { jbAlly = '*'; saveAlly(); }   // pasted gates are meant to be used
-  saveJb(); jbChanged();
-  impMsg(t('impDone').replace('{n}', fmt(added)) + (bad.length ? ' · ' + t('impBad').replace('{n}', fmt(bad.length)) : ''), out.length ? 'ok' : 'err');
-  $('jbText').value = bad.join('\n');   // keep only what wasn't understood
+  const { out, bad } = parseGateList(jbText.value);
+  const old = new Map(JB.gates.map(g => [pairKey(g.a, g.b), g])), list = new Map();
+  for (const g of out) { const k = pairKey(g.a, g.b); if (!list.has(k)) list.set(k, old.get(k) || g); }
+  JB.gates = [...list.values()];
+  if (JB.gates.length && !jbAlly) { jbAlly = '*'; saveAlly(); }   // pasted gates are meant to be used
+  saveJb(); jbChanged(); fillJbText(true);
+  impMsg(t('impDone').replace('{n}', fmt(JB.gates.length)) +
+    (bad.length ? ' · ' + t('impBad').replace('{n}', fmt(bad.length)) + ': ' + bad.slice(0, 3).join(' | ') + (bad.length > 3 ? ' …' : '') : ''),
+    bad.length ? 'err' : 'ok');
 });
 $('jbCopy').addEventListener('click', async () => {
-  const text = JB.gates.map(g => `${NAME[g.a]} » ${NAME[g.b]}`).sort().join('\n');
+  const text = jbText.value.trim();
   if (!text) return;
   let ok = false;
   try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
-  if (!ok) { $('jbText').value = text; $('jbText').select(); }
+  if (!ok) { jbText.focus(); jbText.select(); }   // no clipboard access: leave it selected for Ctrl+C
   impMsg(ok ? t('copied') : '', 'ok');
 });
 $('jbClear').addEventListener('click', () => {
   if (!JB.gates.length || !confirm(t('clearAsk'))) return;
-  JB.gates = []; JB.sso = null; saveJb(); jbChanged(); impMsg('');
+  JB.gates = []; saveJb(); jbChanged(); fillJbText(true); impMsg('');
 });
+
+// saved gates as cards; a click on a system closes the dialog and shows the system on the map
+function renderJbList() {
+  const coll = new Intl.Collator(loc(), { numeric: true });
+  const list = JB.gates.slice().sort((x, y) => coll.compare(NAME[x.a], NAME[y.a]) || coll.compare(NAME[x.b], NAME[y.b]));
+  const sys = i => `<button class="jsys" data-i="${i}" title="${esc(t('showOnMap'))}"><span class="dot" style="background:${SECCOL[CIDX[i]]}"></span>${NAME[i]}</button>`;
+  $('jbList').innerHTML = list.length ? list.map(g => {
+    const own = gateOwner(g), col = jbColor(g);
+    return `<div class="jbrow" style="border-inline-start-color:${col}">${sys(g.a)}<b class="jbm" style="color:${col}">»</b>${sys(g.b)}` +
+      `<span class="jmeta">${lyText(dist(g.a, g.b))}${own ? ' · ' + esc(allyName(own)) : ''}</span>` +
+      `<button class="jx" data-k="${pairKey(g.a, g.b)}" title="${esc(t('jbRemove').replace('{a}', NAME[g.a]).replace('{b}', NAME[g.b]))}">×</button></div>`;
+  }).join('') : `<div class="muted">${esc(t('jbNone'))}</div>`;
+  $('jbClear').hidden = !list.length;
+}
+$('jbList').addEventListener('click', e => {
+  const x = e.target.closest('.jx'); if (x) return removeJb(+x.dataset.k);
+  const s = e.target.closest('.jsys'); if (s) { jbDlg.close(); select(+s.dataset.i, true); }
+});
+
+// typing a gate: "From" offers systems where an Ansiblex can stand, "To" the ones within its reach (nearest first);
+// the chosen "From" turns into a chip, choosing "To" adds the gate
+const jbFrom = $('jbFrom'), jbTo = $('jbTo'), jbSug = $('jbSug'), jbFromChip = $('jbFromChip');
+let jbPickFrom = -1, jbSugList = [], jbSugActive = -1, jbSugFor = null;
+function jbAddMsg(text, cls = '') { const el = $('jbAddMsg'); el.textContent = text; el.className = 'jb-msg ' + cls; }
+function renderJbPick() {
+  jbFromChip.hidden = jbPickFrom < 0; jbFrom.hidden = jbPickFrom >= 0;
+  if (jbPickFrom >= 0) jbFromChip.innerHTML = `<span class="dot" style="background:${SECCOL[CIDX[jbPickFrom]]}"></span>${NAME[jbPickFrom]}` +
+    `<button type="button" class="tx" title="${esc(t('reset'))}">×</button>`;
+}
+function jbCandidates(input) {
+  const q = input.value.trim().toLowerCase(), out = [];
+  if (input === jbFrom) {
+    if (q) for (const i of SORTED) if (LOWER[i].startsWith(q) && !jbSiteError(i)) { out.push([i]); if (out.length === 6) break; }
+    return out;
+  }
+  if (jbPickFrom < 0) return out;
+  for (let i = 0; i < N; i++)
+    if (i !== jbPickFrom && (!q || LOWER[i].startsWith(q)) && !jbLinkError(jbPickFrom, i)) out.push([i, dist(jbPickFrom, i)]);
+  return out.sort((a, b) => a[1] - b[1]).slice(0, 6);
+}
+function updJbSug() { [...jbSug.children].forEach((el, n) => el.classList.toggle('active', n === jbSugActive)); }
+function closeJbSug() { jbSug.classList.remove('open'); jbSugList = []; jbSugActive = -1; }
+function renderJbSug(input) {
+  jbSugFor = input; jbSugList = jbCandidates(input); jbSugActive = jbSugList.length ? 0 : -1;
+  const q = input.value.trim();
+  jbSug.innerHTML = jbSugList.map(([i, d]) => `<div class="sg" role="option" data-i="${i}">` +
+    `<span class="dot" style="background:${SECCOL[CIDX[i]]}"></span>` +
+    `<span class="nm"><b>${NAME[i].slice(0, q.length)}</b>${NAME[i].slice(q.length)}</span>` +
+    `<span class="sv" style="color:${SECCOL[CIDX[i]]}">${secDisp(SEC[i]).toFixed(1)}</span>` +
+    `<span class="rg">${d !== undefined ? lyText(d) + ' · ' : ''}${esc(D.regions[REG[i]])}</span></div>`).join('');
+  jbSug.classList.toggle('open', jbSugList.length > 0);
+  updJbSug();
+}
+function jbChoose(i) {
+  if (jbSugFor === jbFrom) {
+    jbPickFrom = i; jbFrom.value = ''; renderJbPick(); closeJbSug(); jbAddMsg('');
+    jbTo.focus(); renderJbSug(jbTo);
+  } else {
+    const a = jbPickFrom;
+    jbPickFrom = -1; jbTo.value = ''; renderJbPick(); closeJbSug();
+    connectJb(a, i);
+    jbAddMsg(t('jbAdded').replace('{a}', NAME[a]).replace('{b}', NAME[i]), 'ok');
+    jbFrom.focus();
+  }
+}
+// Enter: the highlighted suggestion, or the exact name typed (saying why it can't be used)
+function jbEnter(input) {
+  if (jbSugFor === input && jbSugActive >= 0 && jbSug.classList.contains('open')) return jbChoose(jbSugList[jbSugActive][0]);
+  const q = input.value.trim().toLowerCase();
+  if (!q) return jbAddMsg('');
+  // the exact name, or else the first system starting with it: either way, say why it isn't offered
+  const i = byName.has(q) ? byName.get(q) : SORTED.find(j => LOWER[j].startsWith(q));
+  if (i === undefined) return jbAddMsg(t('notFound'), 'err');
+  const err = input === jbFrom ? jbSiteError(i) : jbPickFrom < 0 ? t('jbFromFirst') : jbLinkError(jbPickFrom, i);
+  if (err) return jbAddMsg(err, 'err');
+  jbSugFor = input; jbChoose(i);
+}
+function clearJbFrom() { jbPickFrom = -1; renderJbPick(); closeJbSug(); jbFrom.focus(); }
+for (const inp of [jbFrom, jbTo]) {
+  inp.addEventListener('input', () => {
+    jbAddMsg('');
+    if (inp === jbTo && jbPickFrom < 0) { closeJbSug(); return jbAddMsg(t('jbFromFirst'), 'err'); }
+    renderJbSug(inp);
+  });
+  inp.addEventListener('focus', () => { if (inp === jbTo ? jbPickFrom >= 0 : inp.value.trim()) renderJbSug(inp); });
+  inp.addEventListener('blur', closeJbSug);
+  inp.addEventListener('keydown', e => {
+    const open = jbSugFor === inp && jbSug.classList.contains('open');
+    if (e.key === 'ArrowDown' && open) { e.preventDefault(); jbSugActive = (jbSugActive + 1) % jbSugList.length; updJbSug(); }
+    else if (e.key === 'ArrowUp' && open) { e.preventDefault(); jbSugActive = (jbSugActive - 1 + jbSugList.length) % jbSugList.length; updJbSug(); }
+    else if (e.key === 'Enter') { e.preventDefault(); jbEnter(inp); }
+    else if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); closeJbSug(); }
+    else if (e.key === 'Backspace' && inp === jbTo && !inp.value && jbPickFrom >= 0) { e.preventDefault(); clearJbFrom(); }
+  });
+}
+jbSug.addEventListener('pointerdown', e => e.preventDefault());   // keep focus in the input while clicking
+jbSug.addEventListener('click', e => { const el = e.target.closest('.sg'); if (el) jbChoose(+el.dataset.i); });
+jbSug.addEventListener('pointermove', e => {
+  const el = e.target.closest('.sg'); if (!el) return;
+  const n = [...jbSug.children].indexOf(el); if (n !== jbSugActive) { jbSugActive = n; updJbSug(); }
+});
+jbFromChip.addEventListener('click', e => { if (e.target.closest('.tx')) clearJbFrom(); });
+// Esc with the suggestions open closes only them, not the dialog
+jbDlg.addEventListener('cancel', e => { if (jbSug.classList.contains('open')) { e.preventDefault(); closeJbSug(); } });
 
 // ---------- route: waypoints joined by the shortest path (stargates, plus usable Ansiblex gates) ----------
 // segs: one path per leg; broken: legs with no path; jb: Ansiblex jumps; gateOnly: jumps the same route takes without them
@@ -2804,27 +2958,81 @@ document.addEventListener('pointerdown', hideHtip, true);
 const ctxEl = $('ctx');
 function openCtx(i, x, y) {
   hideTip();
-  ctxEl.innerHTML = `<div class="ctx-title">${NAME[i]} ${secHtml(i)}</div>` +
+  const note = err => err ? `<div class="ctx-note">${esc(err)}</div>` : '';
+  // while an Ansiblex is being drawn, connecting it comes first
+  let draft = '';
+  if (jbDraft >= 0 && jbDraft !== i) {
+    const err = jbLinkError(jbDraft, i);
+    draft = `<button data-act="jbto" class="ctx-jb"${err ? ' disabled' : ''}>» ${esc(t('jbConnect').replace('{a}', NAME[jbDraft]).replace('{d}', lyText(dist(jbDraft, i))))}</button>` +
+      note(err) + `<button data-act="jbx">× ${esc(t('jbCancel').replace('{a}', NAME[jbDraft]))}</button><div class="ctx-sep"></div>`;
+  }
+  let jb = '';
+  for (const g of JB_BY_SYS.get(i) || [])
+    jb += `<button data-act="jbrm" data-k="${pairKey(g.a, g.b)}">✕ ${esc(t('jbRemove').replace('{a}', NAME[g.a]).replace('{b}', NAME[g.b]))}</button>`;
+  if (jbDraft === i) jb += `<button data-act="jbx">× ${esc(t('jbCancel').replace('{a}', NAME[i]))}</button>`;
+  else if (jbDraft < 0 && jbNullsec(i) && !JB_BY_SYS.has(i)) {
+    const err = jbSiteError(i);
+    jb += `<button data-act="jbfrom" class="ctx-jb"${err ? ' disabled' : ''}>» ${t('jbFromHere')}</button>` + note(err);
+  }
+  ctxEl.innerHTML = `<div class="ctx-title">${NAME[i]} ${secHtml(i)}</div>` + draft +
     `<button data-act="wp">+ ${t('addWp')}</button>` +
     (route.wps.includes(i) ? `<button data-act="rm">− ${t('removeWp')}</button>` : '') +
     `<button data-act="jump">◎ ${t('jumpHere')}</button>` +
-    `<button data-act="info">ⓘ ${t('details')}</button>`;
+    `<button data-act="info">ⓘ ${t('details')}</button>` + (jb ? `<div class="ctx-sep"></div>${jb}` : '');
   ctxEl.dataset.i = i; ctxEl.hidden = false;
   const w = ctxEl.offsetWidth, h = ctxEl.offsetHeight;
   ctxEl.style.left = Math.max(8, Math.min(x, W - w - 8)) + 'px';
   ctxEl.style.top = Math.max(8, Math.min(y, H - h - 8)) + 'px';
-  ctxEl.querySelector('button').focus({ preventScroll: true });
+  ctxEl.querySelector('button:not(:disabled)').focus({ preventScroll: true });
 }
 function closeCtx() { ctxEl.hidden = true; }
 ctxEl.addEventListener('click', e => {
-  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const b = e.target.closest('button[data-act]'); if (!b || b.disabled) return;
   const i = +ctxEl.dataset.i, act = b.dataset.act;
   closeCtx();
   if (act === 'wp') addWaypoint(i);
   else if (act === 'rm') removeWaypoint(i);
   else if (act === 'jump') setOrigin(i);
+  else if (act === 'jbfrom') startJbDraft(i);
+  else if (act === 'jbto') connectJb(jbDraft, i);
+  else if (act === 'jbx') cancelJbDraft();
+  else if (act === 'jbrm') removeJb(+b.dataset.k);
   else select(i, false);
 });
+
+// ---------- drawing Ansiblex gates by hand ----------
+// game rules (Ansiblex Jump Bridge, type 35841): up to 5 LY between the pair, one per system,
+// only where a player sovereignty hub can be (nullsec outside Pochven and NPC space)
+const JB_RANGE = 5;
+let jbDraft = -1;   // the system the new gate starts from
+const jbNullsec = i => secDisp(SEC[i]) <= 0 && REG[i] !== POCHVEN;
+function jbSiteError(i) {
+  const s = LIVE && LIVE.sov.get(SYSID[i]);
+  if (!jbNullsec(i) || (s && s.faction_id && !s.alliance_id)) return t('jbNotNull');
+  if (JB_BY_SYS.has(i)) return t('jbHasGate').replace('{s}', NAME[i]);
+  return '';
+}
+const jbLinkError = (a, b) => jbSiteError(b) || (dist(a, b) > JB_RANGE ? t('jbTooFar').replace('{d}', lyText(dist(a, b))) : '');
+function renderJbDraft() {
+  const el = $('jbDraftBar');
+  el.hidden = jbDraft < 0;
+  if (jbDraft >= 0) $('jbDraftText').textContent = t('jbDraft').replace('{a}', NAME[jbDraft]);
+}
+function startJbDraft(i) { jbDraft = i; renderJbDraft(); redraw(); }
+function cancelJbDraft() { jbDraft = -1; renderJbDraft(); redraw(); }
+function connectJb(a, b) {
+  if (a < 0 || jbLinkError(a, b)) return;
+  // a hand-drawn gate belongs to the alliance chosen for routes (or, with none chosen, to whoever holds the system)
+  mergeGates([{ a, b, owner: jbAlly && jbAlly !== '*' ? +jbAlly : 0 }]);
+  if (!jbAlly) { jbAlly = '*'; saveAlly(); }
+  jbDraft = -1; renderJbDraft();
+  saveJb(); jbChanged();
+}
+function removeJb(key) {
+  JB.gates = JB.gates.filter(g => pairKey(g.a, g.b) !== key);
+  saveJb(); jbChanged();
+}
+$('jbDraftX').addEventListener('click', cancelJbDraft);
 ctxEl.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('pointerdown', e => { if (!ctxEl.hidden && !e.target.closest('#ctx')) closeCtx(); }, true);
 
@@ -2878,6 +3086,7 @@ function applyLang() {
   renderMapOpts();
   renderFilters();
   renderJbUI();
+  renderJbDraft();
   renderRoute();
   closeCtx();
   hideTip(); hideHtip();
@@ -2891,7 +3100,9 @@ window.addEventListener('keydown', e => {
   if (e.key === '+' || e.key === '=') zoomAt(W / 2, H / 2, 1.6);
   else if (e.key === '-' || e.key === '_') zoomAt(W / 2, H / 2, 1 / 1.6);
   else if (e.key === '0') flyFit();
-  else if (e.key === 'Escape') { if (!ctxEl.hidden) closeCtx(); else if (sel >= 0) select(-1); else if (group) setGroup(null); }
+  else if (e.key === 'Escape') {
+    if (!ctxEl.hidden) closeCtx(); else if (jbDraft >= 0) cancelJbDraft(); else if (sel >= 0) select(-1); else if (group) setGroup(null);
+  }
   else if (e.key === '/') { e.preventDefault(); search.focus(); }
 });
 window.addEventListener('resize', () => { closeCtx(); resize(true); });
@@ -2901,7 +3112,6 @@ loadRoute();
 applyLang();
 resize(false);
 loadLive();
-handleSsoRedirect();
 setInterval(loadLive, 30 * 60 * 1000);   // sovereignty and faction warfare change slowly; refresh every 30 minutes
 </script>
 </body>
