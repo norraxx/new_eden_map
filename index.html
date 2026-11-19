@@ -192,6 +192,9 @@
   body.info-open #route { right: 362px; }
   .rt-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
   .rt-actions { margin-inline-start: auto; display: flex; gap: 12px; }
+  /* shortest / safest switch */
+  .rt-mode { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-bottom: 6px; font-size: 12px; }
+  .fchip.on.c-safe { border-color: #4cc38a; background: rgba(76,195,138,.14); color: #c9f2dd; }
   .rt-wps { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
   .wp { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 8px; border-radius: 6px; background: var(--input);
     border: 1px solid var(--border); font-size: 12px; }
@@ -439,6 +442,11 @@
       <button id="rtClear" class="linkbtn" data-i18n="clearRoute"></button>
     </span>
   </div>
+  <div class="rt-mode" id="rtMode">
+    <span class="muted" data-i18n="routeMode"></span>
+    <button class="fchip" data-m="short" data-tip="tipModeShort" data-i18n="modeShort"></button>
+    <button class="fchip c-safe" data-m="safe" data-tip="tipModeSafe" data-i18n="modeSafe"></button>
+  </div>
   <div class="rt-jb">
     <span class="jbi" data-i18n="ansiblex"></span>
     <select id="rtAlly" class="jsel" data-i18n-title="myAlliance"></select>
@@ -647,6 +655,13 @@ const I18N = {
     clearRoute: "Clear",
     reverseRoute: "Reverse",
     noRoute: "No gate route from {a} to {b}",
+    routeMode: "Path:",
+    modeShort: "Shortest",
+    modeSafe: "Safest",
+    tipModeShort: "The fewest jumps, whatever the security of the systems on the way.",
+    tipModeSafe: "Stays in highsec wherever it can, even if that takes more jumps: goes through lowsec or nullsec only when there is no other way, and then through as few such systems as possible.",
+    routeRisky: "low/null systems: {d}",
+    routeShortest: "shortest: {s}",
     menu: "Menu",
     hintRoute: "Right-click a system (long-press on a phone) — add waypoint",
     details: "Show details",
@@ -794,6 +809,13 @@ const I18N = {
     clearRoute: "清除",
     reverseRoute: "反向",
     noRoute: "{a} 到 {b} 之间没有星门航线",
+    routeMode: "路线：",
+    modeShort: "最短",
+    modeSafe: "最安全",
+    tipModeShort: "跳数最少，不考虑沿途星系的安全等级。",
+    tipModeSafe: "尽量留在高安，即使跳数更多：只有别无他路时才经过低安或零安，并且尽量少经过这类星系。",
+    routeRisky: "低安/零安星系：{d}",
+    routeShortest: "最短：{s}",
     menu: "菜单",
     hintRoute: "右键点击星系（手机上长按）— 添加路径点",
     details: "查看详情",
@@ -941,6 +963,13 @@ const I18N = {
     clearRoute: "साफ़ करें",
     reverseRoute: "उलटें",
     noRoute: "{a} से {b} तक गेट से कोई मार्ग नहीं",
+    routeMode: "मार्ग का प्रकार:",
+    modeShort: "सबसे छोटा",
+    modeSafe: "सबसे सुरक्षित",
+    tipModeShort: "सबसे कम जंप, रास्ते के सिस्टमों की सुरक्षा चाहे जो हो।",
+    tipModeSafe: "जहाँ तक हो सके हाईसेक में रहता है, भले ही जंप ज़्यादा लगें: लोसेक या नलसेक से तभी गुज़रता है जब कोई और रास्ता न हो, और तब भी ऐसे कम से कम सिस्टमों से।",
+    routeRisky: "लोसेक/नलसेक सिस्टम: {d}",
+    routeShortest: "सबसे छोटा: {s}",
     menu: "मेनू",
     hintRoute: "सिस्टम पर राइट-क्लिक करें (फ़ोन पर देर तक दबाएँ) — वेपॉइंट जोड़ें",
     details: "विवरण दिखाएँ",
@@ -1088,6 +1117,13 @@ const I18N = {
     clearRoute: "Borrar",
     reverseRoute: "Invertir",
     noRoute: "No hay ruta por portales de {a} a {b}",
+    routeMode: "Trayecto:",
+    modeShort: "Más corto",
+    modeSafe: "Más seguro",
+    tipModeShort: "El menor número de saltos, sea cual sea la seguridad de los sistemas del camino.",
+    tipModeSafe: "Se mantiene en alta seguridad siempre que puede, aunque suponga más saltos: pasa por baja o nula solo cuando no hay otro camino, y entonces por el menor número posible de esos sistemas.",
+    routeRisky: "sistemas de baja/nula: {d}",
+    routeShortest: "más corto: {s}",
     menu: "Menú",
     hintRoute: "Clic derecho en un sistema (pulsación larga en el móvil): añadir punto de ruta",
     details: "Ver detalles",
@@ -1235,6 +1271,13 @@ const I18N = {
     clearRoute: "Effacer",
     reverseRoute: "Inverser",
     noRoute: "Aucun itinéraire par portails de {a} à {b}",
+    routeMode: "Trajet :",
+    modeShort: "Le plus court",
+    modeSafe: "Le plus sûr",
+    tipModeShort: "Le moins de sauts possible, quelle que soit la sécurité des systèmes traversés.",
+    tipModeSafe: "Reste en haute sécurité partout où c’est possible, quitte à faire plus de sauts : ne passe par la basse ou la nulle que s’il n’y a pas d’autre chemin, et alors par le moins possible de ces systèmes.",
+    routeRisky: "systèmes en basse/nulle : {d}",
+    routeShortest: "le plus court : {s}",
     menu: "Menu",
     hintRoute: "Clic droit sur un système (appui long sur mobile) — ajouter un point de passage",
     details: "Voir les détails",
@@ -1382,6 +1425,13 @@ const I18N = {
     clearRoute: "مسح",
     reverseRoute: "عكس",
     noRoute: "لا يوجد مسار عبر البوابات من {a} إلى {b}",
+    routeMode: "نوع المسار:",
+    modeShort: "الأقصر",
+    modeSafe: "الأكثر أمانًا",
+    tipModeShort: "أقل عدد من القفزات، أيًّا كان مستوى أمان الأنظمة على الطريق.",
+    tipModeSafe: "يبقى في الأمان المرتفع حيثما أمكن، حتى لو زاد عدد القفزات: لا يمر عبر الأمان المنخفض أو المعدوم إلا إذا لم يوجد طريق آخر، وعندها عبر أقل عدد ممكن من هذه الأنظمة.",
+    routeRisky: "أنظمة بأمان منخفض/معدوم: {d}",
+    routeShortest: "الأقصر: {s}",
     menu: "القائمة",
     hintRoute: "انقر بزر الفأرة الأيمن على نظام (ضغطة مطوّلة على الهاتف) — إضافة نقطة طريق",
     details: "عرض التفاصيل",
@@ -1529,6 +1579,13 @@ const I18N = {
     clearRoute: "Очистить",
     reverseRoute: "Развернуть",
     noRoute: "Нет маршрута по вратам от {a} до {b}",
+    routeMode: "Путь:",
+    modeShort: "Кратчайший",
+    modeSafe: "Безопасный",
+    tipModeShort: "Меньше всего прыжков, какой бы ни была безопасность систем по дороге.",
+    tipModeSafe: "Держится хайсека везде, где можно, даже если прыжков выйдет больше: через лоусек и нули идёт только когда другого пути нет, и тогда — через как можно меньшее число таких систем.",
+    routeRisky: "лоу/нули: {d}",
+    routeShortest: "кратчайший: {s}",
     menu: "Меню",
     hintRoute: "Правый клик по системе (на телефоне — долгое нажатие) — добавить путевую точку",
     details: "Подробности",
@@ -2807,12 +2864,60 @@ jbFromChip.addEventListener('click', e => { if (e.target.closest('.tx')) clearJb
 // Esc with the suggestions open closes only them, not the dialog
 jbDlg.addEventListener('cancel', e => { if (jbSug.classList.contains('open')) { e.preventDefault(); closeJbSug(); } });
 
-// ---------- route: waypoints joined by the shortest path (stargates, plus usable Ansiblex gates) ----------
+// ---------- route: waypoints joined by the shortest or the safest path (stargates, plus usable Ansiblex gates) ----------
 // segs: one path per leg; broken: legs with no path; jb: Ansiblex jumps; gateOnly: jumps the same route takes without them
-const route = { wps: [], segs: [], broken: [], jumps: 0, jb: 0, gateOnly: 0 };
+// risky: lowsec/nullsec systems on the route; shortest: jumps of the shortest route (differs from jumps only in 'safe' mode)
+const route = { wps: [], segs: [], broken: [], jumps: 0, jb: 0, gateOnly: 0, risky: 0, shortest: 0 };
 const isGate = (a, b) => ADJ[a].includes(b);
-function gatePath(a, b, useJb = true) {   // breadth-first search: a stargate jump and an Ansiblex jump cost the same
+// 'short': the fewest jumps; 'safe': stay in highsec wherever possible. Remembered in this browser.
+let routeMode = 'short';
+try { if (localStorage.getItem('eveMapRouteMode') === 'safe') routeMode = 'safe'; } catch (e) {}
+const saveRouteMode = () => { try { localStorage.setItem('eveMapRouteMode', routeMode); } catch (e) {} };
+// everything below highsec (shown security under 0.5) counts as unsafe: lowsec, nullsec, Pochven
+const RISKY = new Uint8Array(N);
+for (let i = 0; i < N; i++) RISKY[i] = secCat(i) === 'h' ? 0 : 1;
+// safest path, Dijkstra: entering an unsafe system costs more than the longest possible route, so the path has
+// the fewest unsafe systems first and the fewest jumps second — it leaves highsec only when there is no way around
+function safePath(a, b, useJb) {
+  const RISK = N + 1;
+  const cost = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1);
+  const heap = [];   // binary min-heap of cost * N + system
+  const push = k => {
+    let i = heap.length; heap.push(k);
+    while (i > 0) { const p = (i - 1) >> 1; if (heap[p] <= k) break; heap[i] = heap[p]; i = p; }
+    heap[i] = k;
+  };
+  const pop = () => {
+    const top = heap[0], k = heap.pop(), n = heap.length;
+    if (n) {
+      let i = 0;
+      for (;;) {
+        let c = 2 * i + 1; if (c >= n) break;
+        if (c + 1 < n && heap[c + 1] < heap[c]) c++;
+        if (heap[c] >= k) break;
+        heap[i] = heap[c]; i = c;
+      }
+      heap[i] = k;
+    }
+    return top;
+  };
+  cost[a] = 0; push(a);
+  while (heap.length) {
+    const k = pop(), u = k % N, d = (k - u) / N;
+    if (d > cost[u]) continue;   // an outdated heap entry
+    if (u === b) { const p = [b]; for (let x = b; x !== a;) { x = prev[x]; p.push(x); } return p.reverse(); }
+    const jb = useJb && JB_ADJ.get(u);
+    for (const v of jb ? ADJ[u].concat(jb) : ADJ[u]) {
+      const nd = d + 1 + RISKY[v] * RISK;
+      if (nd < cost[v]) { cost[v] = nd; prev[v] = u; push(nd * N + v); }
+    }
+  }
+  return null;
+}
+// 'short' mode is a breadth-first search: a stargate jump and an Ansiblex jump cost the same
+function gatePath(a, b, useJb = true, mode = routeMode) {
   if (a === b) return [a];
+  if (mode === 'safe') return safePath(a, b, useJb);
   const prev = new Int32Array(N).fill(-1); prev[a] = a;
   const q = [a];
   for (let h = 0; h < q.length; h++) {
@@ -2827,7 +2932,7 @@ function gatePath(a, b, useJb = true) {   // breadth-first search: a stargate ju
   return null;   // e.g. Pochven or Jove space: not connected by gates
 }
 function computeRoute() {
-  route.segs = []; route.broken = []; route.jumps = 0; route.jb = 0; route.gateOnly = 0;
+  route.segs = []; route.broken = []; route.jumps = 0; route.jb = 0; route.gateOnly = 0; route.risky = 0; route.shortest = 0;
   const w = route.wps;
   if (w.length === 1) route.segs.push([w[0]]);
   for (let k = 0; k + 1 < w.length; k++) {
@@ -2835,8 +2940,12 @@ function computeRoute() {
     if (!p) { route.broken.push([w[k], w[k + 1]]); continue; }
     route.segs.push(p); route.jumps += p.length - 1;
     for (let j = 1; j < p.length; j++) if (!isGate(p[j - 1], p[j])) route.jb++;
+    // what the detour costs: the same leg by the shortest path
+    route.shortest += routeMode === 'safe' ? gatePath(w[k], w[k + 1], true, 'short').length - 1 : p.length - 1;
   }
   if (route.jb) for (let k = 0; k + 1 < w.length; k++) { const p = gatePath(w[k], w[k + 1], false); if (p) route.gateOnly += p.length - 1; }
+  let last = -1;   // a waypoint ends one leg and starts the next: count it once
+  for (const s of route.segs) for (const i of s) { if (i !== last) route.risky += RISKY[i]; last = i; }
 }
 function saveRoute() { try { localStorage.setItem('eveMapRoute', JSON.stringify(route.wps.map(i => SYSID[i]))); } catch (e) {} }
 function loadRoute() {
@@ -2856,9 +2965,16 @@ function renderRoute() {
   routeEl.hidden = !w.length;
   if (!w.length) return;
   const fin = w[w.length - 1], wpSet = new Set(w);
-  $('rtJumps').textContent = route.jb
+  for (const b of $('rtMode').querySelectorAll('[data-m]')) {
+    const on = b.dataset.m === routeMode;
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+  }
+  const sum = [route.jb
     ? t('jumpsJb').replace('{n}', fmt(route.jumps)).replace('{b}', fmt(route.jb)).replace('{g}', fmt(route.gateOnly))
-    : t('jumpsN').replace('{n}', fmt(route.jumps));
+    : t('jumpsN').replace('{n}', fmt(route.jumps))];
+  if (route.jumps && route.risky) sum.push(t('routeRisky').replace('{d}', fmt(route.risky)));
+  if (route.shortest < route.jumps) sum.push(t('routeShortest').replace('{s}', fmt(route.shortest)));   // only in 'safe' mode
+  $('rtJumps').textContent = sum.join(' · ');
   $('rtWps').innerHTML = w.map((i, k) =>
     `<span class="wp">${k === w.length - 1 ? '<span class="plusm">+</span>' : `<span class="sqm" style="background:${SECCOL[CIDX[i]]}"></span>`}` +
     `<button class="go" data-i="${i}">${k + 1}. ${NAME[i]}</button><button class="rm" data-k="${k}" title="${t('removeWp')}">×</button></span>`).join('');
@@ -2875,6 +2991,8 @@ function renderRoute() {
   $('rtMsg').innerHTML = route.broken.map(([a, b]) => esc(t('noRoute').replace('{a}', NAME[a]).replace('{b}', NAME[b]))).join('<br>');
 }
 routeEl.addEventListener('click', e => {
+  const md = e.target.closest('button[data-m]');
+  if (md) { if (md.dataset.m !== routeMode) { routeMode = md.dataset.m; saveRouteMode(); routeChanged(); } return; }
   const rm = e.target.closest('button[data-k]');
   if (rm) { route.wps.splice(+rm.dataset.k, 1); return routeChanged(); }
   const go = e.target.closest('button[data-i]');
